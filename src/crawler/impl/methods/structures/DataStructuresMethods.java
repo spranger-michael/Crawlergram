@@ -6,7 +6,7 @@
 
 package crawler.impl.methods.structures;
 
-import crawler.impl.structures.Document;
+import crawler.impl.structures.MessageDoc;
 import crawler.output.files.FilesMethods;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.user.TLAbsUser;
@@ -126,7 +126,7 @@ public class DataStructuresMethods {
      * Converts List to double array
      * @param docsInDialogs HashMap with docs for output
      */
-    public static void saveDocsToFiles(HashMap<Integer, List<Document>> docsInDialogs, String path) {
+    public static void saveDocsToFiles(HashMap<Integer, List<MessageDoc>> docsInDialogs, String path) {
         Set<Integer> keysDialogs = docsInDialogs.keySet();
         //date (part of the filename uniqueness)
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss-SSS_");
@@ -138,7 +138,7 @@ public class DataStructuresMethods {
             //write docs data to files
             try {
                 Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "UTF-8"));
-                for (Document doc : docsInDialogs.get(keyD)) {
+                for (MessageDoc doc : docsInDialogs.get(keyD)) {
                     out.append(doc.getId() + ";" + doc.getDate() + ";" + doc.getText() + "\n");
                 }
                 out.flush();
@@ -153,7 +153,7 @@ public class DataStructuresMethods {
      * Replaces all the new lines in docs
      * @param docsInDialogs HashMap with docs for output
      */
-    public static void removeDocsNewLine(HashMap<Integer, List<Document>> docsInDialogs){
+    public static void removeDocsNewLine(HashMap<Integer, List<MessageDoc>> docsInDialogs){
         Set<Integer> keysDialogs = docsInDialogs.keySet();
         for (Integer keyD : keysDialogs) {
             for (int i = 0; i < docsInDialogs.get(keyD).size(); i++) {

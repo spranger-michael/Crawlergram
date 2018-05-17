@@ -11,7 +11,7 @@
 
 package crawler.output.console;
 
-import crawler.impl.structures.Document;
+import crawler.impl.structures.MessageDoc;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.chat.TLChat;
 import org.telegram.api.chat.TLChatEmpty;
@@ -125,11 +125,11 @@ public class ConsoleOutputMethods {
      * @see Set
      * @see TLAbsUser
      */
-    public static void testDocsInDialogsHashMapOutputConsole2( HashMap<Integer, List<Document>> docsInDialogs){
+    public static void testDocsInDialogsHashMapOutputConsole2( HashMap<Integer, List<MessageDoc>> docsInDialogs){
         Set<Integer> keysDialogs = docsInDialogs.keySet();
         for (Integer keyD : keysDialogs) {
             System.out.println("DIALOG " + keyD);
-            for (Document doc : docsInDialogs.get(keyD)) {
+            for (MessageDoc doc : docsInDialogs.get(keyD)) {
                 System.out.println("DOC " + doc.getId() + " " + doc.getText());
             }
         }
@@ -143,12 +143,12 @@ public class ConsoleOutputMethods {
      * @see Set
      * @see TLAbsUser
      */
-    public static void testDocsInDialogsHashMapOutputConsole(HashMap<Integer, List<Document>> docsInDialogs){
+    public static void testDocsInDialogsHashMapOutputConsole(HashMap<Integer, List<MessageDoc>> docsInDialogs){
         Set<Integer> keysDialogs = docsInDialogs.keySet();
         for (Integer keyD : keysDialogs) {
             System.out.println("DIALOG " + keyD);
             int count = 0;
-            for (Document doc : docsInDialogs.get(keyD)) {
+            for (MessageDoc doc : docsInDialogs.get(keyD)) {
                 count++;
             }
             System.out.println("DIALOG " + keyD + " " + count);

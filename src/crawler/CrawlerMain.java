@@ -11,11 +11,12 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import crawler.db.mongo.MongoStorage;
 import crawler.impl.apicallback.ApiCallbackImplemented;
 import crawler.impl.methods.api.*;
 import crawler.impl.methods.structures.DataStructuresMethods;
 import crawler.output.console.ConsoleOutputMethods;
-import crawler.impl.structures.Document;
+import crawler.impl.structures.MessageDoc;
 import crawler.output.files.FilesMethods;
 import crawler.output.logs.MTProtoLoggerInterfaceImplemented;
 import crawler.output.logs.ApiLoggerInterfaceImplemented;
@@ -36,6 +37,10 @@ public class CrawlerMain {
 
 
     public static void main(String[] args) {
+
+        // DB "telegram" location - localhost:27017
+        // User "telegramJ" - db.createUser({user: "telegramJ", pwd: "cart", roles: [{ role: "readWrite", db: "telegram" }]})
+        MongoStorage mongo = new MongoStorage("telegramJ", "telegram", "cart", "localhost", 27017);
 
         // create & check files for logs
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss-SSS");
@@ -86,13 +91,15 @@ public class CrawlerMain {
 
         /**
          * This line gets all the messages and saves them to the docs hashtable (empty docs are not saved, but used for calculations):
-         *      HashMap<Integer, List<Document>> docsInDialogs = ApiMessagesToDocsMethods.apiMessagesToDocuments(api, dialogs, chatsHashMap, usersHashMap, messagesLimit, docThreshold);
+         *      HashMap<Integer, List<MessageDoc>> docsInDialogs = ApiMessagesToDocsMethods.apiMessagesToDocuments(api, dialogs, chatsHashMap, usersHashMap, messagesLimit, docThreshold);
          */
-        HashMap<Integer, List<Document>> docsInDialogs = ApiMessagesToDocsMethods.apiMessagesToDocuments(api, dialogs, chatsHashMap, usersHashMap, messagesLimit, docThreshold);
+        HashMap<Integer, List<MessageDoc>> docsInDialogs = ApiMessagesToDocsMethods.apiMessagesToDocuments(api, dialogs, chatsHashMap, usersHashMap, messagesLimit, docThreshold);
         // save HashMap to file (with additional preparation)
         ConsoleOutputMethods.testDocsInDialogsHashMapOutputConsole(docsInDialogs);
         DataStructuresMethods.removeDocsNewLine(docsInDialogs);
         DataStructuresMethods.saveDocsToFiles(docsInDialogs, "docs");
+
+        mongo.dbWriteMessageDocsHashMap(docsInDialogs);
 
         // stops the execution
         System.exit(0);

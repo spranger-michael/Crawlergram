@@ -1,3 +1,9 @@
+/*
+ * Title: testexp.java
+ * Project: telegramJ
+ * Creator: mikriuko
+ */
+
 import crawler.impl.methods.maths.GaussNewton;
 import crawler.impl.methods.maths.NoSquareException;
 

@@ -9,10 +9,10 @@ package crawler.impl.methods.api;
 import crawler.impl.methods.structures.DataStructuresMethods;
 import crawler.impl.methods.maths.ExpRegMaths;
 import crawler.impl.methods.maths.GaussNewton;
+import crawler.impl.structures.MessageDoc;
 import crawler.output.console.ConsoleOutputMethods;
 import crawler.impl.methods.maths.NoSquareException;
-import crawler.impl.structures.Document;
-import crawler.impl.structures.DocumentByDateComparator;
+import crawler.impl.structures.MessageDocByDateComparator;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.chat.channel.TLChannel;
 import org.telegram.api.chat.channel.TLChannelForbidden;
@@ -38,8 +38,8 @@ public class ApiMessagesToDocsMethods {
      * @param   docThreshold    threshold between long and short chat
      * @see TelegramApi
      */
-    public static HashMap<Integer, List<Document>> apiMessagesToDocuments(TelegramApi api, TLVector<TLDialog> dialogs, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap, int limit, int docThreshold){
-        HashMap<Integer, List<Document>> docsInDialogs = new HashMap<>();
+    public static HashMap<Integer, List<MessageDoc>> apiMessagesToDocuments(TelegramApi api, TLVector<TLDialog> dialogs, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap, int limit, int docThreshold){
+        HashMap<Integer, List<MessageDoc>> docsInDialogs = new HashMap<>();
 
         System.out.println(dialogs.size());
         int i=0;
@@ -75,8 +75,8 @@ public class ApiMessagesToDocsMethods {
      * @see TLVector<TLAbsMessage>
      * @see TLAbsMessage
      */
-    private static  List<Document> apiMessagesToDocs(TLDialog dialog, HashMap<Integer, TLAbsChat> chatsHashMap, TLVector<TLAbsMessage> messages, int docThreshold){
-        List<Document> docs = new ArrayList<>();
+    private static  List<MessageDoc> apiMessagesToDocs(TLDialog dialog, HashMap<Integer, TLAbsChat> chatsHashMap, TLVector<TLAbsMessage> messages, int docThreshold){
+        List<MessageDoc> docs = new ArrayList<>();
         //if channel
         if (dialog.getPeer() instanceof TLPeerChannel) {
             TLAbsChat absChannel = chatsHashMap.get(dialog.getPeer().getId());
@@ -101,7 +101,7 @@ public class ApiMessagesToDocsMethods {
      * @param   messages  messages
      * @see TLAbsMessage
      */
-    private static  List<Document> apiChannelsToDocs(TLVector<TLAbsMessage> messages) {
+    private static  List<MessageDoc> apiChannelsToDocs(TLVector<TLAbsMessage> messages) {
         // get list of "clean" docs (without empty and service messages)
         return apiMessagesToDocs(messages);
     }
@@ -112,9 +112,9 @@ public class ApiMessagesToDocsMethods {
      * @param   docThreshold    threshold
      * @see TLAbsMessage
      */
-    private static List<Document> apiChatsToDocs(TLVector<TLAbsMessage> messages, int docThreshold){
+    private static List<MessageDoc> apiChatsToDocs(TLVector<TLAbsMessage> messages, int docThreshold){
         // get list of "clean" docs (without empty and service messages)
-        List<Document> docs = apiMessagesToDocs(messages);
+        List<MessageDoc> docs = apiMessagesToDocs(messages);
         // if number of docs < docThreshold - short chat, else - long chat
         return ((docs.size() < docThreshold) && (docs.size() > 0)) ? apiShortChatsToDocs(docs) : apiLongChatsToDocs(docs);
     }
@@ -123,17 +123,17 @@ public class ApiMessagesToDocsMethods {
      * converts short chats (number of docs < threshold) to one doc
      * @param   docs  "clean" docs (without empty and service messages)
      */
-    private static List<Document> apiShortChatsToDocs(List<Document> docs) {
-        List<Document> chatDocs = new ArrayList<>();
+    private static List<MessageDoc> apiShortChatsToDocs(List<MessageDoc> docs) {
+        List<MessageDoc> chatDocs = new ArrayList<>();
         String docText = "";
-        for (Document doc: docs){
+        for (MessageDoc doc: docs){
             if (!doc.getText().isEmpty()){
                 docText += doc.getText() + "\n";
             }
         }
         if (!docText.isEmpty()){
             // id and date of last doc are written to doc
-            chatDocs.add(new Document(docs.get(0).getId(), docs.get(0).getDate(), docText));
+            chatDocs.add(new MessageDoc(docs.get(0).getId(), docs.get(0).getDate(), docText));
         }
         return chatDocs;
     }
@@ -142,11 +142,11 @@ public class ApiMessagesToDocsMethods {
      * converts long chats (number of docs > threshold) to docs divided by time
      * @param   docs  "clean" docs (without empty and service messages)
      */
-    private static List<Document> apiLongChatsToDocs(List<Document> docs) {
-        Collections.sort(docs, new DocumentByDateComparator());
+    private static List<MessageDoc> apiLongChatsToDocs(List<MessageDoc> docs) {
+        Collections.sort(docs, new MessageDocByDateComparator());
         // get intervals between messages to array
         List<Integer> dates = new ArrayList<>();
-        for (Document doc: docs){
+        for (MessageDoc doc: docs){
             dates.add(doc.getDate());
         }
         // deltas between intervals
@@ -192,12 +192,12 @@ public class ApiMessagesToDocsMethods {
      * @param   absMessage  abstract message
      * @see TLAbsMessage
      */
-    private static Document apiMessageToDoc(TLAbsMessage absMessage){
-        Document doc = null;
+    private static MessageDoc apiMessageToDoc(TLAbsMessage absMessage){
+        MessageDoc doc = null;
         // if not empty message and not service message
         if (absMessage instanceof TLMessage) {
             TLMessage message = (TLMessage) absMessage;
-            doc = new Document(message.getId(), message.getDate(), message.getMessage());
+            doc = new MessageDoc(message.getId(), message.getDate(), message.getMessage());
         }
         return doc;
     }
@@ -207,11 +207,11 @@ public class ApiMessagesToDocsMethods {
      * @param   messages  abstract message
      * @see TLAbsMessage
      */
-    private static List<Document> apiMessagesToDocs(TLVector<TLAbsMessage> messages){
-        List<Document> docs = new ArrayList<>();
+    private static List<MessageDoc> apiMessagesToDocs(TLVector<TLAbsMessage> messages){
+        List<MessageDoc> docs = new ArrayList<>();
         // each TLMessage is doc
         for (TLAbsMessage absMessage : messages) {
-            Document doc = apiMessageToDoc(absMessage);
+            MessageDoc doc = apiMessageToDoc(absMessage);
             if (doc != null){
                 docs.add(doc);
             }
@@ -224,15 +224,15 @@ public class ApiMessagesToDocsMethods {
      * @param docs documents
      * @param timeThreshold maximum time between messages in one doc
      */
-    private static List<Document> apiMessageMergeDocsByTime(List<Document> docs, int timeThreshold){
-        ArrayList<Document> docsCopy = new ArrayList<>(docs);
+    private static List<MessageDoc> apiMessageMergeDocsByTime(List<MessageDoc> docs, int timeThreshold){
+        ArrayList<MessageDoc> docsCopy = new ArrayList<>(docs);
         for (int i = 0; i < docsCopy.size() - 1; i++){
             // date of the current and next documents
-            Document d0 = docsCopy.get(i);
-            Document d1 = docsCopy.get(i+1);
+            MessageDoc d0 = docsCopy.get(i);
+            MessageDoc d1 = docsCopy.get(i+1);
             // threshold criterion
             if (d0.getDate() - d1.getDate() <= timeThreshold){
-                docsCopy.set(i, new Document(d0.getId(), d0.getDate(), d0.getText() + "\n" + d1.getText()));
+                docsCopy.set(i, new MessageDoc(d0.getId(), d0.getDate(), d0.getText() + "\n" + d1.getText()));
                 docsCopy.remove(i+1);
                 // returns i back each time, when we have merge of the docs, to check for multiple merges in row
                 i--;
@@ -245,7 +245,7 @@ public class ApiMessagesToDocsMethods {
      * Removes empty docs (no text message)
      * @param docsInDialogs HashMap with docs for output
      */
-    private static void removeEmptyDocs(HashMap<Integer, List<Document>> docsInDialogs){
+    private static void removeEmptyDocs(HashMap<Integer, List<MessageDoc>> docsInDialogs){
         Set<Integer> keysDialogs = docsInDialogs.keySet();
         for (Integer keyD : keysDialogs) {
             for (int i = 0; i < docsInDialogs.get(keyD).size(); i++) {

@@ -9,22 +9,22 @@ package crawler.impl.structures;
 import java.util.Comparator;
 
 /**
- * Document is a single short message, channel message or set of short messages which were written during some short time interval.
+ * MessageDoc is a single short message, channel message or set of short messages which were written during some short time interval.
  */
 
-public class Document {
+public class MessageDoc {
 
     Integer id;
     Integer date;
     String text;
 
-    public Document(){
+    public MessageDoc(){
         this.id = null;
         this.date = null;
         this.text = null;
     }
 
-    public Document(Integer id, Integer date, String text){
+    public MessageDoc(Integer id, Integer date, String text){
         this.id = id;
         this.date = date;
         this.text = text;
