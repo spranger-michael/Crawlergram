@@ -109,6 +109,9 @@ public class ApiMessagesGetMediaMethods {
                     // web page media
                 } else if (absMedia instanceof TLMessageMediaWebPage) {
                     apiMessageMediaWebPageOutputConsole((TLMessageMediaWebPage) absMedia);
+                    // invoice
+                } else if (absMedia instanceof TLMessageMediaInvoice) {
+                    apiMessageMediaInvoiceOutputConsole((TLMessageMediaInvoice) absMedia);
                     // other media (unknown)
                 } else {
                     System.err.println("UNKNOWN MEDIA");
@@ -238,6 +241,16 @@ public class ApiMessagesGetMediaMethods {
         } else { // instanceof TLGeoPointEmpty
             System.out.println("EMPTY VALUE LOCATION");
         }
+    }
+
+    /**
+     * Outputs invoice media in console     *
+     * @param    mediaInvoice web page media
+     * @see    TLMessageMediaWebPage
+     */
+    private static void apiMessageMediaInvoiceOutputConsole(TLMessageMediaInvoice mediaInvoice) {
+        System.out.println("INVOICE: " + mediaInvoice.getTotalAmount() + " " + mediaInvoice.getCurrency() + " " +
+                mediaInvoice.getTitle() + " " + mediaInvoice.getDescription());
     }
 
     /**
