@@ -4,7 +4,29 @@ Java client for Telegram based on [TelegramApi](https://github.com/rubenlagus/Te
 
 ## Dependencies
 
-Requires [TelegramApi](https://github.com/rubenlagus/TelegramApi) library.
+1. Java 1.8 or later.
+
+2. [TelegramApi](https://github.com/rubenlagus/TelegramApi) library.
+
+Maven:
+```xml
+  <dependency>
+    <groupId>org.telegram</groupId>
+    <artifactId>telegramapi</artifactId>
+    <version>66.2</version>
+  </dependency>
+```
+
+3. [MongoDB Java Driver](https://github.com/mongodb/mongo-java-driver) library.
+
+Maven:
+```xml
+  <dependency>
+    <groupId>org.mongodb</groupId>
+    <artifactId>mongodb-driver</artifactId>
+    <version>3.6.3</version>
+  </dependency>
+```
 
 ## Acknowledgments
 
