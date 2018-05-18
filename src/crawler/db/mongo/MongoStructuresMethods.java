@@ -1,18 +1,17 @@
 /*
  * Title: MongoStructuresMethods.java
  * Project: telegramJ
- * Creator: mikriuko
+ * Creator: Georgii Mikriukov
  */
 
 package crawler.db.mongo;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoIterable;
-import crawler.impl.structures.MessageDoc;
+import crawler.implementation.structures.MessageDoc;
 import org.bson.Document;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class MongoStructuresMethods {

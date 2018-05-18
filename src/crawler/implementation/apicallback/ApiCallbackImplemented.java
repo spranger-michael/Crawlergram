@@ -1,10 +1,10 @@
 /*
  * Title: CrawlerMain.java
  * Project: telegramJ
- * Creator: mikriuko
+ * Creator: Georgii Mikriukov
  */
 
-package crawler.impl.apicallback;
+package crawler.implementation.apicallback;
 
 import org.telegram.api.engine.ApiCallback;
 import org.telegram.api.engine.Logger;

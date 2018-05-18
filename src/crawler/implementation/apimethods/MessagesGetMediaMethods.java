@@ -1,13 +1,12 @@
 /*
  * Title: CrawlerMain.java
  * Project: telegramJ
- * Creator: mikriuko
+ * Creator: Georgii Mikriukov
  */
 
-package crawler.impl.methods.api;
+package crawler.implementation.apimethods;
 
 import crawler.output.console.ConsoleOutputMethods;
-import crawler.impl.methods.setobjects.SetTLObjectsMethods;
 import crawler.output.files.FilesMethods;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.dialog.TLDialog;
@@ -42,7 +41,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 
-public class ApiMessagesGetMediaMethods {
+public class MessagesGetMediaMethods {
 
     /**
      * Outputs messages from dialogs in console and saves media
@@ -57,7 +56,7 @@ public class ApiMessagesGetMediaMethods {
     public static void apiSaveMediaFromDialogsMessages(TelegramApi api, TLVector<TLDialog> dialogs, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap, int limit, String path) {
         for (TLDialog dialog : dialogs) {
             // make actions upon each message in loop
-            TLVector<TLAbsMessage> messages = ApiDialogsHistoryMethods.apiGetMessagesHistory(api, dialog, chatsHashMap, usersHashMap, limit);
+            TLVector<TLAbsMessage> messages = DialogsHistoryMethods.apiGetMessagesHistory(api, dialog, chatsHashMap, usersHashMap, limit);
             for (TLAbsMessage message : messages) {
                 // write the message content in console
                 ConsoleOutputMethods.testMessageOutputConsole(message);

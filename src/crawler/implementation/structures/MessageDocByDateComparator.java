@@ -1,10 +1,10 @@
 /*
  * Title: CrawlerMain.java
  * Project: telegramJ
- * Creator: mikriuko
+ * Creator: Georgii Mikriukov
  */
 
-package crawler.impl.structures;
+package crawler.implementation.structures;
 
 import java.util.Comparator;
 

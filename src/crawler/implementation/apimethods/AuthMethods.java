@@ -1,12 +1,11 @@
 /*
  * Title: CrawlerMain.java
  * Project: telegramJ
- * Creator: mikriuko
+ * Creator: Georgii Mikriukov
  */
 
-package crawler.impl.methods.api;
+package crawler.implementation.apimethods;
 
-import crawler.impl.methods.setobjects.SetTLObjectsMethods;
 import org.telegram.api.TLConfig;
 import org.telegram.api.TLNearestDc;
 import org.telegram.api.auth.TLAuthorization;
@@ -24,7 +23,7 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
-public class ApiAuthMethods {
+public class AuthMethods {
 
     /**
      * Sets Api state. Gets nearest DC (essential for connection), DC config and sets api config

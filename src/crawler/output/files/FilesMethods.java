@@ -1,12 +1,7 @@
 /*
- * ********************************************************************************************************************
- * Title: SaveFiles.java
+ * Title: FilesMethods.java
  * Project: telegramJ
- * Creator: mikriuko
- * Company: Hochschule Mittweida
- * Last Modified: 08.05.18 12:08
- * ********************************************************************************************************************
- *
+ * Creator: Georgii Mikriukov
  */
 
 package crawler.output.files;

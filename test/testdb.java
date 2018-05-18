@@ -1,12 +1,12 @@
 /*
  * Title: testdb.java
  * Project: telegramJ
- * Creator: mikriuko
+ * Creator: Georgii Mikriukov
  */
 
 
 import crawler.db.mongo.MongoStorage;
-import crawler.impl.structures.MessageDoc;
+import crawler.implementation.structures.MessageDoc;
 
 import java.util.*;
 

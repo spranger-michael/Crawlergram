@@ -1,18 +1,18 @@
 /*
  * Title: CrawlerMain.java
  * Project: telegramJ
- * Creator: mikriuko
+ * Creator: Georgii Mikriukov
  */
 
-package crawler.impl.methods.api;
+package crawler.implementation.apimethods;
 
-import crawler.impl.methods.structures.DataStructuresMethods;
-import crawler.impl.methods.maths.ExpRegMaths;
-import crawler.impl.methods.maths.GaussNewton;
-import crawler.impl.structures.MessageDoc;
+import crawler.implementation.structures.DataStructuresMethods;
+import crawler.implementation.maths.gaussnewton.ExpRegMaths;
+import crawler.implementation.maths.gaussnewton.GaussNewton;
+import crawler.implementation.structures.MessageDoc;
 import crawler.output.console.ConsoleOutputMethods;
-import crawler.impl.methods.maths.NoSquareException;
-import crawler.impl.structures.MessageDocByDateComparator;
+import crawler.implementation.maths.gaussnewton.NoSquareException;
+import crawler.implementation.structures.MessageDocByDateComparator;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.chat.channel.TLChannel;
 import org.telegram.api.chat.channel.TLChannelForbidden;
@@ -26,7 +26,7 @@ import org.telegram.tl.TLVector;
 
 import java.util.*;
 
-public class ApiMessagesToDocsMethods {
+public class MessagesToDocsMethods {
 
     /**
      * Saves messages to documents hashtable
@@ -51,7 +51,7 @@ public class ApiMessagesToDocsMethods {
             System.out.println(ConsoleOutputMethods.testOutHashMapObjectbyKey(dialog.getPeer().getId(), chatsHashMap,usersHashMap));
 
             // make actions upon each message in loop
-            TLVector<TLAbsMessage> messages = ApiDialogsHistoryMethods.apiGetMessagesHistory(api, dialog, chatsHashMap, usersHashMap, limit);
+            TLVector<TLAbsMessage> messages = DialogsHistoryMethods.apiGetMessagesHistory(api, dialog, chatsHashMap, usersHashMap, limit);
 
             System.out.println(dialog.getPeer().getId() + " " + messages.size());
 

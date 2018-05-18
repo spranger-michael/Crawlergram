@@ -1,12 +1,7 @@
 /*
- * ********************************************************************************************************************
- * Title: LogInterfaceImplemented.java
+ * Title: MTProtoLoggerInterfaceImplemented.java
  * Project: telegramJ
- * Creator: mikriuko
- * Company: Hochschule Mittweida
- * Last Modified: 08.05.18 11:59
- * ********************************************************************************************************************
- *
+ * Creator: Georgii Mikriukov
  */
 
 package crawler.output.logs;

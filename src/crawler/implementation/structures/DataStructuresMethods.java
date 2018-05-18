@@ -1,12 +1,11 @@
 /*
  * Title: CrawlerMain.java
  * Project: telegramJ
- * Creator: mikriuko
+ * Creator: Georgii Mikriukov
  */
 
-package crawler.impl.methods.structures;
+package crawler.implementation.structures;
 
-import crawler.impl.structures.MessageDoc;
 import crawler.output.files.FilesMethods;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.user.TLAbsUser;

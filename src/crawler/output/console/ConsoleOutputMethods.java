@@ -1,17 +1,12 @@
 /*
- * ********************************************************************************************************************
  * Title: ConsoleOutputMethods.java
  * Project: telegramJ
- * Creator: mikriuko
- * Company: Hochschule Mittweida
- * Last Modified: 08.05.18 11:41
- * ********************************************************************************************************************
- *
+ * Creator: Georgii Mikriukov
  */
 
 package crawler.output.console;
 
-import crawler.impl.structures.MessageDoc;
+import crawler.implementation.structures.MessageDoc;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.chat.TLChat;
 import org.telegram.api.chat.TLChatEmpty;

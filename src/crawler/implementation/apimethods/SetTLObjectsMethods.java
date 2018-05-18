@@ -1,10 +1,10 @@
 /*
  * Title: CrawlerMain.java
  * Project: telegramJ
- * Creator: mikriuko
+ * Creator: Georgii Mikriukov
  */
 
-package crawler.impl.methods.setobjects;
+package crawler.implementation.apimethods;
 
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -50,8 +50,8 @@ public class SetTLObjectsMethods {
 
     /**
      * Sets TLRequestAuthImportAuthorization
-     * @param	apiHash api hash
-     * @param	apiKey api key
+     * @param	apiHash apimethods hash
+     * @param	apiKey apimethods key
      * @param	phoneNum phone number
      * @see	TLRequestAuthImportAuthorization
      */
@@ -135,7 +135,7 @@ public class SetTLObjectsMethods {
 
     /**
      * Sets TLRequestMessagesGetDialogs (returns all dialogs): offId = 0, peer = new TLInputPeerEmpty()
-     * @param	peer	peer used as offset (use TLInputPeerEmpty as default
+     * @param	id	peer used as offset (use TLInputPeerEmpty as default
      * @see	TLRequestMessagesGetDialogs
      */
     public static TLRequestMessagesGetDialogs getDialogsSet2(int id){

@@ -1,12 +1,10 @@
 /*
  * Title: CrawlerMain.java
  * Project: telegramJ
- * Creator: mikriuko
+ * Creator: Georgii Mikriukov
  */
 
-package crawler.impl.structures;
-
-import java.util.Comparator;
+package crawler.implementation.structures;
 
 /**
  * MessageDoc is a single short message, channel message or set of short messages which were written during some short time interval.

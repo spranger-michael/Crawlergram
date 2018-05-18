@@ -1,7 +1,7 @@
 /*
  * Title: MongoInterface.java
  * Project: telegramJ
- * Creator: mikriuko
+ * Creator: Georgii Mikriukov
  */
 
 package crawler.db.mongo;
@@ -10,14 +10,12 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
-import crawler.impl.structures.MessageDoc;
-import org.bson.BsonDocument;
+import crawler.implementation.structures.MessageDoc;
 import org.bson.Document;
 
 import java.util.HashMap;

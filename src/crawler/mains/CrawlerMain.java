@@ -1,10 +1,10 @@
 /*
  * Title: CrawlerMain.java
  * Project: telegramJ
- * Creator: mikriuko
+ * Creator: Georgii Mikriukov
  */
 
-package crawler;
+package crawler.mains;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -12,11 +12,11 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import crawler.db.mongo.MongoStorage;
-import crawler.impl.apicallback.ApiCallbackImplemented;
-import crawler.impl.methods.api.*;
-import crawler.impl.methods.structures.DataStructuresMethods;
+import crawler.implementation.apicallback.ApiCallbackImplemented;
+import crawler.implementation.apimethods.*;
+import crawler.implementation.structures.DataStructuresMethods;
 import crawler.output.console.ConsoleOutputMethods;
-import crawler.impl.structures.MessageDoc;
+import crawler.implementation.structures.MessageDoc;
 import crawler.output.files.FilesMethods;
 import crawler.output.logs.MTProtoLoggerInterfaceImplemented;
 import crawler.output.logs.ApiLoggerInterfaceImplemented;
@@ -53,20 +53,20 @@ public class CrawlerMain {
         org.telegram.mtproto.log.Logger.registerInterface(new MTProtoLoggerInterfaceImplemented(logfilePathMTProto));
         org.telegram.api.engine.Logger.registerInterface(new ApiLoggerInterfaceImplemented(logfilePathApi));
 
-        // api state
+        // apimethods state
         AbsApiState apiState = new MemoryApiState("api.state");
         // app info
         AppInfo appInfo = new AppInfo(APIKEY, "desktop", "Windows", "pre alpha 0.01", "en");
         // callback
         ApiCallback apiCallback = new ApiCallbackImplemented();
 
-        // init api
+        // init apimethods
         TelegramApi api = new TelegramApi(apiState, appInfo, apiCallback);
-        // set api state
-        ApiAuthMethods.apiSetApiState(api, apiState);
+        // set apimethods state
+        AuthMethods.apiSetApiState(api, apiState);
 
         // do auth
-        ApiAuthMethods.apiAuth(api, apiState, APIKEY, APIHASH, PHONENUMBER, Optional.<String>empty(), Optional.<String>empty());
+        AuthMethods.apiAuth(api, apiState, APIKEY, APIHASH, PHONENUMBER, Optional.<String>empty(), Optional.<String>empty());
 
         // dialogs, chats, users structures
         HashMap<Integer, TLAbsChat> chatsHashMap = new HashMap<>();
@@ -74,7 +74,7 @@ public class CrawlerMain {
         TLVector<TLDialog> dialogs = new TLVector<>();
 
         // get all dialogs of user (telegram returns 100 dialogs at maximum, getting by slices)
-        ApiDialogsHistoryMethods.apiGetDialogsChatsUsers(api, dialogs, chatsHashMap, usersHashMap);
+        DialogsHistoryMethods.apiGetDialogsChatsUsers(api, dialogs, chatsHashMap, usersHashMap);
 
         ConsoleOutputMethods.testChatsHashMapOutputConsole(chatsHashMap);
         ConsoleOutputMethods.testUsersHashMapOutputConsole(usersHashMap);
@@ -85,15 +85,15 @@ public class CrawlerMain {
 
         /**
          * This line saves media and outputs messages in console:
-         *     ApiMessagesGetMediaMethods.apiSaveMediaFromDialogsMessages(api, dialogs, chatsHashMap, usersHashMap, messagesLimit, "downloaded docs");
+         *     MessagesGetMediaMethods.apiSaveMediaFromDialogsMessages(apimethods, dialogs, chatsHashMap, usersHashMap, messagesLimit, "downloaded docs");
          */
-        //ApiMessagesGetMediaMethods.apiSaveMediaFromDialogsMessages(api, dialogs, chatsHashMap, usersHashMap, messagesLimit, "downloaded docs");
+        //MessagesGetMediaMethods.apiSaveMediaFromDialogsMessages(api, dialogs, chatsHashMap, usersHashMap, messagesLimit, "media");
 
         /**
          * This line gets all the messages and saves them to the docs hashtable (empty docs are not saved, but used for calculations):
-         *      HashMap<Integer, List<MessageDoc>> docsInDialogs = ApiMessagesToDocsMethods.apiMessagesToDocuments(api, dialogs, chatsHashMap, usersHashMap, messagesLimit, docThreshold);
+         *      HashMap<Integer, List<MessageDoc>> docsInDialogs = MessagesToDocsMethods.apiMessagesToDocuments(apimethods, dialogs, chatsHashMap, usersHashMap, messagesLimit, docThreshold);
          */
-        HashMap<Integer, List<MessageDoc>> docsInDialogs = ApiMessagesToDocsMethods.apiMessagesToDocuments(api, dialogs, chatsHashMap, usersHashMap, messagesLimit, docThreshold);
+        HashMap<Integer, List<MessageDoc>> docsInDialogs = MessagesToDocsMethods.apiMessagesToDocuments(api, dialogs, chatsHashMap, usersHashMap, messagesLimit, docThreshold);
         // save HashMap to file (with additional preparation)
         ConsoleOutputMethods.testDocsInDialogsHashMapOutputConsole(docsInDialogs);
         DataStructuresMethods.removeDocsNewLine(docsInDialogs);

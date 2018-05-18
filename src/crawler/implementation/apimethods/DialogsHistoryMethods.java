@@ -1,13 +1,12 @@
 /*
  * Title: CrawlerMain.java
  * Project: telegramJ
- * Creator: mikriuko
+ * Creator: Georgii Mikriukov
  */
 
-package crawler.impl.methods.api;
+package crawler.implementation.apimethods;
 
-import crawler.impl.methods.structures.DataStructuresMethods;
-import crawler.impl.methods.setobjects.SetTLObjectsMethods;
+import crawler.implementation.structures.DataStructuresMethods;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.dialog.TLDialog;
 import org.telegram.api.engine.RpcException;
@@ -32,7 +31,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
-public class ApiDialogsHistoryMethods {
+public class DialogsHistoryMethods {
 
     /**
      * Gets all dialogs dialogs of current client by chunks
