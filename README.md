@@ -9,29 +9,30 @@ Java client for Telegram based on [TelegramApi](https://github.com/rubenlagus/Te
 2. [TelegramApi](https://github.com/rubenlagus/TelegramApi) library.
 
 Maven:
-```xml
+  ```xml
   <dependency>
     <groupId>org.telegram</groupId>
     <artifactId>telegramapi</artifactId>
     <version>66.2</version>
   </dependency>
-```
+  ```
 
 3. [MongoDB Java Driver](https://github.com/mongodb/mongo-java-driver) library.
 
 Maven:
-```xml
+  ```xml
   <dependency>
     <groupId>org.mongodb</groupId>
     <artifactId>mongodb-driver</artifactId>
     <version>3.6.3</version>
   </dependency>
-```
+  ```
 
 ## Acknowledgments
 
   * To [Rubenlagus](https://github.com/rubenlagus) for the existance of [TelegramApi](https://github.com/rubenlagus/TelegramApi).
   * To [Lonami](https://github.com/Lonami) for [Telethon](https://github.com/LonamiWebs/Telethon) library, which was used for clarifications in some tricky cases.
+  * To [Ata Amini](https://www.codeproject.com/Members/Ata-Amini) for the implementation of [Gauss-Newton Algorithm](https://www.codeproject.com/Articles/1175992/Implementation-of-Gauss-Newton-Algorithm-in-Java).
 
 ## License
 
