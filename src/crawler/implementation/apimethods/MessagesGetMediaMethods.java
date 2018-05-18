@@ -53,15 +53,18 @@ public class MessagesGetMediaMethods {
      * @param   path    path for the files saving
      * @see TelegramApi
      */
-    public static void apiSaveMediaFromDialogsMessages(TelegramApi api, TLVector<TLDialog> dialogs, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap, int limit, String path) {
+    public static void saveMediaFromDialogsMessages(TelegramApi api, TLVector<TLDialog> dialogs, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap, int limit, String path) {
         for (TLDialog dialog : dialogs) {
             // make actions upon each message in loop
-            TLVector<TLAbsMessage> messages = DialogsHistoryMethods.apiGetMessagesHistory(api, dialog, chatsHashMap, usersHashMap, limit);
+            TLVector<TLAbsMessage> messages = DialogsHistoryMethods.getWholeMessagesHistory(api, dialog, chatsHashMap, usersHashMap, limit);
             for (TLAbsMessage message : messages) {
+
+                //TODO redo downloads
+
                 // write the message content in console
                 ConsoleOutputMethods.testMessageOutputConsole(message);
                 // save message media to file
-                apiMessageDownloadMedia(api, message, path);
+                messageDownloadMedia(api, message, path);
             }
             // sleep between transmissions to avoid flood wait
             try {Thread.sleep(1000);} catch (InterruptedException ignored) {}
@@ -74,7 +77,7 @@ public class MessagesGetMediaMethods {
      * @see TLAbsMessage
      * @see TLAbsMessageMedia
      */
-    public static void apiMessageDownloadMedia(TelegramApi api, TLAbsMessage absMessage, String path) {
+    public static void messageDownloadMedia(TelegramApi api, TLAbsMessage absMessage, String path) {
         // check for message is not TLMessageEmpty
         if (absMessage instanceof TLMessage) {
             TLMessage message = (TLMessage) absMessage;
@@ -83,34 +86,34 @@ public class MessagesGetMediaMethods {
                 TLAbsMessageMedia absMedia = message.getMedia();
                 // contact from the phone book
                 if (absMedia instanceof TLMessageMediaContact) {
-                    apiMessageMediaContactOutputConsole((TLMessageMediaContact) absMedia);
+                    messageMediaContactOutputConsole((TLMessageMediaContact) absMedia);
                     // document (files)
                 } else if (absMedia instanceof TLMessageMediaDocument) {
-                    apiMessageMediaDocumentOutput(api, (TLMessageMediaDocument) absMedia, path);
+                    messageMediaDocumentOutput(api, (TLMessageMediaDocument) absMedia, path);
                     // empty media
                 } else if (absMedia instanceof TLMessageMediaEmpty) {
                     System.out.println("EMPTY MEDIA");
                     // game
                 } else if (absMedia instanceof TLMessageMediaGame) {
-                    apiMessageMediaGameOutputConsole((TLMessageMediaGame) absMedia);
+                    messageMediaGameOutputConsole((TLMessageMediaGame) absMedia);
                     // geolocation coordinates
                 } else if (absMedia instanceof TLMessageMediaGeo) {
-                    apiMessageMediaGeoOutputConsole((TLMessageMediaGeo) absMedia);
+                    messageMediaGeoOutputConsole((TLMessageMediaGeo) absMedia);
                     // photo
                 } else if (absMedia instanceof TLMessageMediaPhoto) {
-                    apiMessageMediaPhotoOutput(api, (TLMessageMediaPhoto) absMedia, path);
+                    messageMediaPhotoOutput(api, (TLMessageMediaPhoto) absMedia, path);
                     // unsupported media
                 } else if (absMedia instanceof TLMessageMediaUnsupported) {
                     System.err.println("UNSUPPORTED MEDIA TYPE");
                     // venue media (geolocation coordinates + description)
                 } else if (absMedia instanceof TLMessageMediaVenue) {
-                    apiMessageMediaVenueOutputConsole((TLMessageMediaVenue) absMedia);
+                    messageMediaVenueOutputConsole((TLMessageMediaVenue) absMedia);
                     // web page media
                 } else if (absMedia instanceof TLMessageMediaWebPage) {
-                    apiMessageMediaWebPageOutputConsole((TLMessageMediaWebPage) absMedia);
+                    messageMediaWebPageOutputConsole((TLMessageMediaWebPage) absMedia);
                     // invoice
                 } else if (absMedia instanceof TLMessageMediaInvoice) {
-                    apiMessageMediaInvoiceOutputConsole((TLMessageMediaInvoice) absMedia);
+                    messageMediaInvoiceOutputConsole((TLMessageMediaInvoice) absMedia);
                     // other media (unknown)
                 } else {
                     System.err.println("UNKNOWN MEDIA");
@@ -124,7 +127,7 @@ public class MessagesGetMediaMethods {
      * @param	contact contact media
      * @see	TLMessageMediaContact
      */
-    private static void apiMessageMediaContactOutputConsole(TLMessageMediaContact contact){
+    private static void messageMediaContactOutputConsole(TLMessageMediaContact contact){
         System.out.println("CONTACT: " + " " + contact.getPhoneNumber() + " " + contact.getUserId() + " " + contact.getFirstName() + " " + contact.getLastName());
     }
 
@@ -133,7 +136,7 @@ public class MessagesGetMediaMethods {
      * @param	mediaDocument document media
      * @see	TLMessageMediaDocument
      */
-    private static void apiMessageMediaDocumentOutput(TelegramApi api, TLMessageMediaDocument mediaDocument, String path){
+    private static void messageMediaDocumentOutput(TelegramApi api, TLMessageMediaDocument mediaDocument, String path){
         TLAbsDocument absDoc = mediaDocument.getDocument();
         if (absDoc instanceof TLDocument){
             TLDocument doc = (TLDocument) absDoc;
@@ -179,7 +182,7 @@ public class MessagesGetMediaMethods {
      * @param	mediaGame game media
      * @see	TLMessageMediaGame
      */
-    private static void apiMessageMediaGameOutputConsole(TLMessageMediaGame mediaGame){
+    private static void messageMediaGameOutputConsole(TLMessageMediaGame mediaGame){
         TLGame game = mediaGame.getGame();
         System.out.println("GAME: " + game.getTitle() + " " + game.getDescription());
     }
@@ -189,7 +192,7 @@ public class MessagesGetMediaMethods {
      * @param	mediaGeo geo media
      * @see	TLMessageMediaGeo
      */
-    private static void apiMessageMediaGeoOutputConsole(TLMessageMediaGeo mediaGeo){
+    private static void messageMediaGeoOutputConsole(TLMessageMediaGeo mediaGeo){
         TLAbsGeoPoint absGeo = mediaGeo.getGeo();
         if (absGeo instanceof TLGeoPoint){
             TLGeoPoint geo = (TLGeoPoint) absGeo;
@@ -204,7 +207,7 @@ public class MessagesGetMediaMethods {
      * @param	mediaPhoto  photo media
      * @see	TLMessageMediaPhoto
      */
-    private static void apiMessageMediaPhotoOutput(TelegramApi api, TLMessageMediaPhoto mediaPhoto, String path){
+    private static void messageMediaPhotoOutput(TelegramApi api, TLMessageMediaPhoto mediaPhoto, String path){
         TLAbsPhoto absPhoto = mediaPhoto.getPhoto();
         if (absPhoto instanceof TLPhoto){
             TLPhoto photo = (TLPhoto) absPhoto;
@@ -230,7 +233,7 @@ public class MessagesGetMediaMethods {
      * @param	mediaVenue venue media
      * @see	TLMessageMediaVenue
      */
-    private static void apiMessageMediaVenueOutputConsole(TLMessageMediaVenue mediaVenue){
+    private static void messageMediaVenueOutputConsole(TLMessageMediaVenue mediaVenue){
         System.out.println("VENUE: " + " " +  mediaVenue.getVenue_id() + " " + mediaVenue.getTitle() +
                 " " + mediaVenue.getAddress() + " " + mediaVenue.getProvider());
         TLAbsGeoPoint absGeo = mediaVenue.getGeo();
@@ -247,7 +250,7 @@ public class MessagesGetMediaMethods {
      * @param    mediaInvoice web page media
      * @see    TLMessageMediaWebPage
      */
-    private static void apiMessageMediaInvoiceOutputConsole(TLMessageMediaInvoice mediaInvoice) {
+    private static void messageMediaInvoiceOutputConsole(TLMessageMediaInvoice mediaInvoice) {
         System.out.println("INVOICE: " + mediaInvoice.getTotalAmount() + " " + mediaInvoice.getCurrency() + " " +
                 mediaInvoice.getTitle() + " " + mediaInvoice.getDescription());
     }
@@ -257,7 +260,7 @@ public class MessagesGetMediaMethods {
      * @param	mediaWebPage web page media
      * @see	TLMessageMediaWebPage
      */
-    private static void apiMessageMediaWebPageOutputConsole(TLMessageMediaWebPage mediaWebPage){
+    private static void messageMediaWebPageOutputConsole(TLMessageMediaWebPage mediaWebPage){
         TLAbsWebPage absWebPage = mediaWebPage.getWebPage();
         if (absWebPage instanceof TLWebPage){
             TLWebPage webPage = (TLWebPage) absWebPage;

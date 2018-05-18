@@ -4,30 +4,31 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.mains;
+/**
+ * Connects to The telegram, gets dialogs, saves messages and documents to DB
+ */
 
-import java.io.File;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
+package crawler.mains;
 
 import crawler.db.mongo.MongoStorage;
 import crawler.implementation.apicallback.ApiCallbackImplemented;
-import crawler.implementation.apimethods.*;
-import crawler.implementation.structures.DataStructuresMethods;
+import crawler.implementation.apimethods.AuthMethods;
+import crawler.implementation.apimethods.DialogsHistoryMethods;
+import crawler.implementation.apimethods.MessagesGetMediaMethods;
+import crawler.implementation.logs.LogMethods;
 import crawler.output.console.ConsoleOutputMethods;
-import crawler.implementation.structures.MessageDoc;
-import crawler.output.files.FilesMethods;
-import crawler.output.logs.MTProtoLoggerInterfaceImplemented;
-import crawler.output.logs.ApiLoggerInterfaceImplemented;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.dialog.TLDialog;
-import org.telegram.api.engine.*;
+import org.telegram.api.engine.ApiCallback;
+import org.telegram.api.engine.AppInfo;
+import org.telegram.api.engine.TelegramApi;
 import org.telegram.api.engine.storage.AbsApiState;
 import org.telegram.api.user.TLAbsUser;
 import org.telegram.bot.kernel.engine.MemoryApiState;
 import org.telegram.tl.TLVector;
 
+import java.util.HashMap;
+import java.util.Optional;
 
 public class CrawlerMain {
 
@@ -42,31 +43,26 @@ public class CrawlerMain {
         // User "telegramJ" - db.createUser({user: "telegramJ", pwd: "cart", roles: [{ role: "readWrite", db: "telegram" }]})
         MongoStorage mongo = new MongoStorage("telegramJ", "telegram", "cart", "localhost", 27017);
 
-        // create & check files for logs
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss-SSS");
-        Date date = new Date();
-        String logfilePathApi = "logs" + File.separator + "apiLog_" + dateFormat.format(date) + ".log";
-        String logfilePathMTProto = "logs" + File.separator + "MTProtoLog_" + dateFormat.format(date) + ".log";
-        FilesMethods.checkFilePath(logfilePathApi);
-        FilesMethods.checkFilePath(logfilePathMTProto);
-        // init logs
-        org.telegram.mtproto.log.Logger.registerInterface(new MTProtoLoggerInterfaceImplemented(logfilePathMTProto));
-        org.telegram.api.engine.Logger.registerInterface(new ApiLoggerInterfaceImplemented(logfilePathApi));
+        //register loggers
+        LogMethods.registerLogs("logs");
 
-        // apimethods state
+        // api state
         AbsApiState apiState = new MemoryApiState("api.state");
-        // app info
+
+        // app info set
         AppInfo appInfo = new AppInfo(APIKEY, "desktop", "Windows", "pre alpha 0.01", "en");
-        // callback
+
+        // api callback methods
         ApiCallback apiCallback = new ApiCallbackImplemented();
 
-        // init apimethods
+        // init api
         TelegramApi api = new TelegramApi(apiState, appInfo, apiCallback);
-        // set apimethods state
-        AuthMethods.apiSetApiState(api, apiState);
+
+        // set api state
+        AuthMethods.setApiState(api, apiState);
 
         // do auth
-        AuthMethods.apiAuth(api, apiState, APIKEY, APIHASH, PHONENUMBER, Optional.<String>empty(), Optional.<String>empty());
+        AuthMethods.auth(api, apiState, APIKEY, APIHASH, PHONENUMBER, Optional.<String>empty(), Optional.<String>empty());
 
         // dialogs, chats, users structures
         HashMap<Integer, TLAbsChat> chatsHashMap = new HashMap<>();
@@ -74,34 +70,21 @@ public class CrawlerMain {
         TLVector<TLDialog> dialogs = new TLVector<>();
 
         // get all dialogs of user (telegram returns 100 dialogs at maximum, getting by slices)
-        DialogsHistoryMethods.apiGetDialogsChatsUsers(api, dialogs, chatsHashMap, usersHashMap);
-
+        DialogsHistoryMethods.getDialogsChatsUsers(api, dialogs, chatsHashMap, usersHashMap);
+        // output to console
         ConsoleOutputMethods.testChatsHashMapOutputConsole(chatsHashMap);
         ConsoleOutputMethods.testUsersHashMapOutputConsole(usersHashMap);
 
         // all dialogs
         int messagesLimit = 1000; // maximum number of retrieved messages from each dialog
-        int docThreshold = 50; // threshold between long and short chat
 
-        /**
-         * This line saves media and outputs messages in console:
-         *     MessagesGetMediaMethods.apiSaveMediaFromDialogsMessages(apimethods, dialogs, chatsHashMap, usersHashMap, messagesLimit, "downloaded docs");
-         */
-        //MessagesGetMediaMethods.apiSaveMediaFromDialogsMessages(api, dialogs, chatsHashMap, usersHashMap, messagesLimit, "media");
+        //Saves messages and media and outputs messages in console:
+        MessagesGetMediaMethods.saveMediaFromDialogsMessages(api, dialogs, chatsHashMap, usersHashMap, messagesLimit, "media");
 
-        /**
-         * This line gets all the messages and saves them to the docs hashtable (empty docs are not saved, but used for calculations):
-         *      HashMap<Integer, List<MessageDoc>> docsInDialogs = MessagesToDocsMethods.apiMessagesToDocuments(apimethods, dialogs, chatsHashMap, usersHashMap, messagesLimit, docThreshold);
-         */
-        HashMap<Integer, List<MessageDoc>> docsInDialogs = MessagesToDocsMethods.apiMessagesToDocuments(api, dialogs, chatsHashMap, usersHashMap, messagesLimit, docThreshold);
-        // save HashMap to file (with additional preparation)
-        ConsoleOutputMethods.testDocsInDialogsHashMapOutputConsole(docsInDialogs);
-        DataStructuresMethods.removeDocsNewLine(docsInDialogs);
-        DataStructuresMethods.saveDocsToFiles(docsInDialogs, "docs");
-
-        mongo.dbWriteMessageDocsHashMap(docsInDialogs);
+        //mongo.dbWriteMessageDocsHashMap(docsInDialogs);
 
         // stops the execution
         System.exit(0);
     }
+
 }

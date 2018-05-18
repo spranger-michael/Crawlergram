@@ -51,7 +51,7 @@ public class MessagesToDocsMethods {
             System.out.println(ConsoleOutputMethods.testOutHashMapObjectbyKey(dialog.getPeer().getId(), chatsHashMap,usersHashMap));
 
             // make actions upon each message in loop
-            TLVector<TLAbsMessage> messages = DialogsHistoryMethods.apiGetMessagesHistory(api, dialog, chatsHashMap, usersHashMap, limit);
+            TLVector<TLAbsMessage> messages = DialogsHistoryMethods.getOnlyUsersMessagesHistory(api, dialog, chatsHashMap, usersHashMap, limit);
 
             System.out.println(dialog.getPeer().getId() + " " + messages.size());
 
@@ -175,10 +175,10 @@ public class MessagesToDocsMethods {
             }
         };
         // values initialization and optimisation
-        double[] expModelInit = ExpRegMaths.expRegInitVals(DataStructuresMethods.dataSetToDoubles(deltasUnique), DataStructuresMethods.dataListToDoubles(deltasUniqueCounts));
+        double[] expModelInit = ExpRegMaths.expRegInitVals(DataStructuresMethods.setToDoubles(deltasUnique), DataStructuresMethods.listToDoubles(deltasUniqueCounts));
         double[] expModel = new double[2];
         try {
-            expModel = gn.optimise(DataStructuresMethods.dataSetToDoubles2D(deltasUnique), DataStructuresMethods.dataListToDoubles(deltasUniqueCounts), expModelInit);
+            expModel = gn.optimise(DataStructuresMethods.setToDoubles2D(deltasUnique), DataStructuresMethods.listToDoubles(deltasUniqueCounts), expModelInit);
         } catch (NoSquareException e) {
             System.out.println(e.getMessage());
         }

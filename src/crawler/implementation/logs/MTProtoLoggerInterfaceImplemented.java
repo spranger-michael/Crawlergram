@@ -1,19 +1,19 @@
 /*
- * Title: ApiLoggerInterfaceImplemented.java
+ * Title: MTProtoLoggerInterfaceImplemented.java
  * Project: telegramJ
  * Creator: Georgii Mikriukov
  */
 
-package crawler.output.logs;
+package crawler.implementation.logs;
 
-import org.telegram.api.engine.LoggerInterface;
+import org.telegram.mtproto.log.LogInterface;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-public class ApiLoggerInterfaceImplemented implements LoggerInterface {
+public class MTProtoLoggerInterfaceImplemented implements LogInterface {
 
     String filename;
     PrintWriter out;
@@ -21,7 +21,7 @@ public class ApiLoggerInterfaceImplemented implements LoggerInterface {
     FileWriter fw;
 
     //constructor
-    public ApiLoggerInterfaceImplemented(String filename) {
+    public MTProtoLoggerInterfaceImplemented(String filename) {
         this.filename = filename;
         try {
             fw = new FileWriter(filename, true);
@@ -39,6 +39,11 @@ public class ApiLoggerInterfaceImplemented implements LoggerInterface {
 
     @Override
     public void d(String s, String s1) {
+        out.println(s + ":" + s1);
+    }
+
+    @Override
+    public void e(String s, String s1) {
         out.println(s + ":" + s1);
     }
 

@@ -27,7 +27,7 @@ public class DataStructuresMethods {
      * @see HashMap<Integer, TLAbsChat>
      * @see TLVector<TLAbsChat>
      */
-    public static HashMap<Integer, TLAbsChat> dataInitChatsHashMap(TLVector<TLAbsChat> chats){
+    public static HashMap<Integer, TLAbsChat> initChatsHashMap(TLVector<TLAbsChat> chats){
         HashMap<Integer, TLAbsChat> chatsHashMap = new HashMap<Integer, TLAbsChat>();
         chats.forEach(chat -> chatsHashMap.put(chat.getId(), chat));
         return chatsHashMap;
@@ -39,7 +39,7 @@ public class DataStructuresMethods {
      * @see HashMap<Integer, TLAbsUser>
      * @see TLVector<TLAbsUser>
      */
-    public static HashMap<Integer, TLAbsUser> dataInitUsersHashMap(TLVector<TLAbsUser> users){
+    public static HashMap<Integer, TLAbsUser> initUsersHashMap(TLVector<TLAbsUser> users){
         HashMap<Integer, TLAbsUser> usersHashMap = new HashMap<Integer, TLAbsUser>();
         users.forEach(user -> usersHashMap.put(user.getId(), user));
         return usersHashMap;
@@ -51,7 +51,7 @@ public class DataStructuresMethods {
      * @see HashMap<Integer, TLAbsChat>
      * @see TLVector<TLAbsChat>
      */
-    public static void dataInsertIntoChatsHashMap(HashMap<Integer, TLAbsChat> chatsHashMap, TLVector<TLAbsChat> chats){
+    public static void insertIntoChatsHashMap(HashMap<Integer, TLAbsChat> chatsHashMap, TLVector<TLAbsChat> chats){
         for (TLAbsChat chat: chats){
             if (!chatsHashMap.containsKey(chat.getId())){
                 chatsHashMap.put(chat.getId(), chat);
@@ -65,7 +65,7 @@ public class DataStructuresMethods {
      * @see HashMap<Integer, TLAbsUser>
      * @see TLVector<TLAbsUser>
      */
-    public static void dataInsertIntoUsersHashMap(HashMap<Integer, TLAbsUser> usersHashMap, TLVector<TLAbsUser> users){
+    public static void insertIntoUsersHashMap(HashMap<Integer, TLAbsUser> usersHashMap, TLVector<TLAbsUser> users){
         for (TLAbsUser user: users){
             if (!usersHashMap.containsKey(user.getId())){
                 usersHashMap.put(user.getId(), user);
@@ -77,7 +77,7 @@ public class DataStructuresMethods {
      * Converts Set to double array
      * @param   set   input set (with doubles or integers)
      */
-    public static double[] dataSetToDoubles(Set<Integer> set){
+    public static double[] setToDoubles(Set<Integer> set){
         double[] res = new double[set.size()];
 
         int i = 0;
@@ -93,7 +93,7 @@ public class DataStructuresMethods {
      * Converts Set to double array
      * @param   set   input set (with doubles or integers)
      */
-    public static double[][] dataSetToDoubles2D(Set<Integer> set){
+    public static double[][] setToDoubles2D(Set<Integer> set){
         double[][] res = new double[set.size()][1];
 
         int i = 0;
@@ -109,7 +109,7 @@ public class DataStructuresMethods {
      * Converts List to double array
      * @param   list   input list (with doubles or integers)
      */
-    public static double[] dataListToDoubles(List<Integer> list){
+    public static double[] listToDoubles(List<Integer> list){
         double[] res = new double[list.size()];
 
         int i = 0;

@@ -32,7 +32,7 @@ public class AuthMethods {
      * @see TelegramApi
      * @see AbsApiState
      */
-    public static void apiSetApiState(TelegramApi api, AbsApiState apiState){
+    public static void setApiState(TelegramApi api, AbsApiState apiState){
         try {
             final TLConfig config = api.doRpcCallNonAuth(new TLRequestHelpGetConfig());
             TLNearestDc nearestDc = api.doRpcCallNonAuth(new TLRequestHelpGetNearestDc());
@@ -55,7 +55,7 @@ public class AuthMethods {
      * @see TelegramApi
      * @see AbsApiState
      */
-    public static void apiAuth(TelegramApi api, AbsApiState apiState, int key, String hash, String phoneNum, Optional<String> nameOpt, Optional<String> surnameOpt){
+    public static void auth(TelegramApi api, AbsApiState apiState, int key, String hash, String phoneNum, Optional<String> nameOpt, Optional<String> surnameOpt){
         String name = nameOpt.orElse("John");
         String surname = surnameOpt.orElse("Smith");
         try {
@@ -71,9 +71,9 @@ public class AuthMethods {
 
                 // if registered - sign in, else - sign up
                 if (sentCode.isPhoneRegistered()) {
-                    auth = apiSingIn(api, phoneNum, sentCode.getPhoneCodeHash());
+                    auth = singIn(api, phoneNum, sentCode.getPhoneCodeHash());
                 } else {
-                    auth = apiSingUp(api, phoneNum, sentCode.getPhoneCodeHash(), name, surname);
+                    auth = singUp(api, phoneNum, sentCode.getPhoneCodeHash(), name, surname);
                 }
                 // refresh api state
                 apiState.doAuth(auth);
@@ -97,7 +97,7 @@ public class AuthMethods {
      * @see AbsApiState
      * @see TLAuthorization
      */
-    private static TLAuthorization apiSingIn(TelegramApi api, String phoneNum, String codeHash){
+    private static TLAuthorization singIn(TelegramApi api, String phoneNum, String codeHash){
         TLAuthorization auth = null;
         try {
             TLRequestAuthSignIn signIn = SetTLObjectsMethods.signInSet(phoneNum, codeHash);
@@ -122,7 +122,7 @@ public class AuthMethods {
      * @see AbsApiState
      * @see TLAuthorization
      */
-    private static TLAuthorization apiSingUp(TelegramApi api, String phoneNum, String codeHash, String name, String surname){
+    private static TLAuthorization singUp(TelegramApi api, String phoneNum, String codeHash, String name, String surname){
         TLAuthorization auth = null;
         try {
             TLRequestAuthSignUp signUp = SetTLObjectsMethods.signUpSet(phoneNum, codeHash, name, surname);
