@@ -16,6 +16,7 @@ import org.telegram.api.chat.channel.TLChannelForbidden;
 import org.telegram.api.dialog.TLDialog;
 import org.telegram.api.message.TLAbsMessage;
 import org.telegram.api.message.TLMessage;
+import org.telegram.api.message.TLMessageService;
 import org.telegram.api.peer.TLPeerChannel;
 import org.telegram.api.peer.TLPeerChat;
 import org.telegram.api.peer.TLPeerUser;
@@ -46,7 +47,7 @@ public class ConsoleOutputMethods {
     }
 
     /**
-     * Outputs content of chats hashtable to console
+     * Outputs content of chats hashmap to console
      * @param	chatsHashMap  HashMap with chats
      * @see HashMap
      * @see Set
@@ -88,7 +89,7 @@ public class ConsoleOutputMethods {
         System.out.println();
     }
 
-    public static String testOutHashMapObjectbyKey(int key ,HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap){
+    public static String testOutHashMapObjectByKey(int key , HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap){
         String out = "";
         Set<Integer> keysUsers = usersHashMap.keySet();
         Set<Integer> keysChats = chatsHashMap.keySet();
@@ -160,6 +161,10 @@ public class ConsoleOutputMethods {
     public static void testMessageOutputConsole(TLAbsMessage absMessage) {
         if (absMessage instanceof TLMessage) {
             System.out.println(((TLMessage) absMessage).getMessage());
+        } else if (absMessage instanceof TLMessageService){
+            System.out.println(((TLMessageService) absMessage).getAction());
+        } else {
+            System.out.println("Empty Message");
         }
     }
 

@@ -24,6 +24,7 @@ import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.dialog.TLDialog;
 import org.telegram.api.engine.*;
 import org.telegram.api.engine.storage.AbsApiState;
+import org.telegram.api.message.TLAbsMessage;
 import org.telegram.api.user.TLAbsUser;
 import org.telegram.bot.kernel.engine.MemoryApiState;
 import org.telegram.tl.TLVector;
@@ -71,10 +72,11 @@ public class CrawlerMainOld {
         // dialogs, chats, users structures
         HashMap<Integer, TLAbsChat> chatsHashMap = new HashMap<>();
         HashMap<Integer, TLAbsUser> usersHashMap = new HashMap<>();
+        HashMap<Integer, TLAbsMessage> messagesHashMap = new HashMap<>();
         TLVector<TLDialog> dialogs = new TLVector<>();
 
         // get all dialogs of user (telegram returns 100 dialogs at maximum, getting by slices)
-        DialogsHistoryMethods.getDialogsChatsUsers(api, dialogs, chatsHashMap, usersHashMap);
+        DialogsHistoryMethods.getDialogsChatsUsers(api, dialogs, chatsHashMap, usersHashMap, messagesHashMap);
 
         ConsoleOutputMethods.testChatsHashMapOutputConsole(chatsHashMap);
         ConsoleOutputMethods.testUsersHashMapOutputConsole(usersHashMap);
@@ -87,7 +89,7 @@ public class CrawlerMainOld {
          * This line saves media and outputs messages in console:
          *     MessagesGetMediaMethods.saveMediaFromDialogsMessages(apimethods, dialogs, chatsHashMap, usersHashMap, messagesLimit, "downloaded docs");
          */
-        //MessagesGetMediaMethods.saveMediaFromDialogsMessages(api, dialogs, chatsHashMap, usersHashMap, messagesLimit, "media");
+        MessagesGetMediaMethods.saveMediaFromDialogsMessages(api, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, "media");
 
         /**
          * This line gets all the messages and saves them to the docs hashtable (empty docs are not saved, but used for calculations):

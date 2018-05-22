@@ -8,6 +8,9 @@ package crawler.implementation.structures;
 
 import crawler.output.files.FilesMethods;
 import org.telegram.api.chat.TLAbsChat;
+import org.telegram.api.message.TLAbsMessage;
+import org.telegram.api.message.TLMessage;
+import org.telegram.api.message.TLMessageService;
 import org.telegram.api.user.TLAbsUser;
 import org.telegram.tl.TLVector;
 
@@ -69,6 +72,22 @@ public class DataStructuresMethods {
         for (TLAbsUser user: users){
             if (!usersHashMap.containsKey(user.getId())){
                 usersHashMap.put(user.getId(), user);
+            }
+        }
+    }
+
+    /**
+     * Insert messages in existing hashmap (if key does not exist)
+     * @param   messages   TLVector with messages
+     * @see HashMap<Integer, TLAbsUser>
+     * @see TLVector<TLAbsUser>
+     */
+    public static void insertIntoMessagesHashMap(HashMap<Integer, TLAbsMessage> messagesHashMap, TLVector<TLAbsMessage> messages){
+        for (TLAbsMessage message: messages){
+            if ((message instanceof TLMessage) && !messagesHashMap.containsKey(message.getChatId())){
+                messagesHashMap.put(message.getChatId(), message);
+            } else if ((message instanceof TLMessageService) && !messagesHashMap.containsKey(message.getChatId())){
+                messagesHashMap.put(message.getChatId(), message);
             }
         }
     }

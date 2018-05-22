@@ -26,6 +26,7 @@ import org.telegram.api.user.TLAbsUser;
 import org.telegram.tl.TLVector;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -43,7 +44,7 @@ public class DialogsHistoryMethods {
      * @see TLVector
      * @see HashMap
      */
-    public static void getDialogsChatsUsers(TelegramApi api, TLVector<TLDialog> dialogs, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap){
+    public static void getDialogsChatsUsers(TelegramApi api, TLVector<TLDialog> dialogs, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap,  HashMap<Integer, TLAbsMessage> messagesHashMap){
         TLAbsDialogs absDialogs = null;
         Set<Integer> dialogIdSet = new HashSet<>();
         // read dialogs
@@ -55,7 +56,7 @@ public class DialogsHistoryMethods {
         } catch (TimeoutException | IOException e) {
             System.err.println(e.getMessage());
         }
-        setDialogsChatsUsersStructures(absDialogs, dialogs, chatsHashMap, usersHashMap, dialogIdSet);
+        setDialogsChatsUsersStructures(absDialogs, dialogs, chatsHashMap, usersHashMap, messagesHashMap, dialogIdSet);
         // if slice of dialogs, get rest of the dialogs in loop by chunks
         if (absDialogs instanceof TLDialogsSlice){
             int count = ((TLDialogsSlice) absDialogs).getCount();
@@ -77,7 +78,7 @@ public class DialogsHistoryMethods {
                 } catch (TimeoutException | IOException e) {
                     System.err.println(e.getMessage());
                 }
-                setDialogsChatsUsersStructures(absDialogs, dialogs, chatsHashMap, usersHashMap, dialogIdSet);
+                setDialogsChatsUsersStructures(absDialogs, dialogs, chatsHashMap, usersHashMap, messagesHashMap, dialogIdSet);
                 curCount = dialogs.size();
             }
         }
@@ -103,9 +104,10 @@ public class DialogsHistoryMethods {
      * @param chatsHashMap chats map
      * @param usersHashMap users map
      */
-    private static void setDialogsChatsUsersStructures(TLAbsDialogs absDialogs, TLVector<TLDialog> dialogs, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap, Set<Integer> dialogSet){
+    private static void setDialogsChatsUsersStructures(TLAbsDialogs absDialogs, TLVector<TLDialog> dialogs, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap, HashMap<Integer, TLAbsMessage> messagesHashMap, Set<Integer> dialogSet){
         DataStructuresMethods.insertIntoChatsHashMap(chatsHashMap, absDialogs.getChats());
         DataStructuresMethods.insertIntoUsersHashMap(usersHashMap, absDialogs.getUsers());
+        DataStructuresMethods.insertIntoMessagesHashMap(messagesHashMap, absDialogs.getMessages());
         dialogsIdToSet(absDialogs,dialogs,dialogSet);
     }
 
@@ -265,15 +267,16 @@ public class DialogsHistoryMethods {
      * @see TelegramApi
      * @see AbsApiState
      */
-    public static TLVector<TLAbsMessage> getWholeMessagesHistory(TelegramApi api, TLDialog dialog, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap, int limit) {
+    public static TLVector<TLAbsMessage> getWholeMessagesHistory(TelegramApi api, TLDialog dialog, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap, HashMap<Integer, TLAbsMessage> messagesHashMap, int limit) {
         // sleep time (Telegram can send FLOOD WAIT ERROR if the requests are done too often)
-        int sleepTime = 100;
-        if ((limit > 1000) || (limit == 0)){sleepTime = 1000;}
+        int sleepTime = 1;
+        if ((limit > 1000) || (limit == 0)){sleepTime = 100;}
         TLVector<TLAbsMessage> messages = new TLVector<>();
         Set<Integer> messageIdSet = new HashSet<>();
-        int offId = 0; // offset id
-        int offDate = 0; // offset date
+        Integer offId = initOffsetsId(dialog, messagesHashMap); // offset id
+        Integer offDate = initOffsetsDate(dialog, messagesHashMap); // offset date
         int receivedMsgs = 0; // received messages
+        int iter = 0;
         while (receivedMessagesCheck(receivedMsgs, limit)) {
             TLRequestMessagesGetHistory getHistory = SetTLObjectsMethods.getHistoryRequestSet(dialog, chatsHashMap, usersHashMap, 100, offDate, offId);
             // try to get messages (in recusrsion), use 0 as initial depth
@@ -285,14 +288,24 @@ public class DialogsHistoryMethods {
             DataStructuresMethods.insertIntoUsersHashMap(usersHashMap, absMessages.getUsers());
             // abstract messages
             TLVector<TLAbsMessage> absMessagesVector = absMessages.getMessages();
-            // collect only messages written by users
+            // collect non-empty ones
             getNonEmptyMessagesFromHistory(messages, absMessagesVector, messageIdSet);
             receivedMsgs = messages.size();
-            // if returns number of messages lesser than chunk size (100) - end of the chat -> break the loop
+            // if returns number of messages less than the chunk size (100) - end of the chat -> break the loop
             if (absMessagesVector.size() < 100) {break;}
-            // offsets: last message id and date
-            offId = ((TLMessage) messages.get(messages.size() - 1)).getId();
-            offDate = ((TLMessage) messages.get(messages.size() - 1)).getDate();
+            // offsets: id and date of last message
+            offId = resetOffsetsId(messages.get(messages.size() - 1));
+            offDate = resetOffsetsDate(messages.get(messages.size() - 1));
+
+            // sleep once per 1000 messages for 1 sec
+            if (iter >=10){
+                try {
+                    Thread.sleep(1000);
+                    iter = 0;
+                } catch (InterruptedException e) {
+                }
+            } else {iter++;}
+
         }
         if ((messages.size() > limit) && (limit != 0)){
             int delta = messages.size() - limit;
@@ -321,15 +334,25 @@ public class DialogsHistoryMethods {
         // sleep
         try { Thread.sleep(time); } catch (InterruptedException e) { System.err.println("Depth: "+ depth + ", Sleep time: " + time + " can't sleep " + e.getMessage()); }
         // try to get messages, in case of fail fail - try again, but later
-        if (depth < 3){
+        if (depth < 2){
             try {
                 absMessages = api.doRpcCall(getHistory);
             } catch (RpcException e) {
-                System.err.println("Depth: "+ depth + ", Sleep time: " + time*3 + " " + e.getErrorTag() + " " + e.getErrorCode());
-                absMessages = sleepAndRequestMessages(api, getHistory, time*3, ++depth);
+                int timeSleep = time;
+                if (e.getErrorTag().startsWith("FLOOD_WAIT_")){
+                    try {
+                        String timeSleepString = e.getErrorTag().replaceAll("FLOOD_WAIT_", "");
+                        timeSleep = Integer.valueOf(timeSleepString)*1000;
+                    } catch (Error er){}
+                }
+                System.err.println("RPC: "+e.getErrorTag()+ " " + e.getErrorCode());
+                System.err.println("Depth: "+ depth + ", Sleep time: " + timeSleep + " " + e.getErrorTag() + " " + e.getErrorCode());
+                absMessages = sleepAndRequestMessages(api, getHistory, timeSleep, ++depth);
+
             } catch (TimeoutException | IOException e) {
-                System.err.println("Depth: "+ depth + ", Sleep time: " + time*3 + " " + e.getMessage());
-                absMessages = sleepAndRequestMessages(api, getHistory, time*3, ++depth);
+                System.err.println("TIMEOUT/IEO : "+ e.getMessage());
+                System.err.println("Depth: "+ depth + ", Sleep time: " + time*10 + " " + e.getMessage());
+                absMessages = sleepAndRequestMessages(api, getHistory, time*10, ++depth);
             }
         }
         return absMessages;
@@ -339,18 +362,93 @@ public class DialogsHistoryMethods {
      * Writes only non-empty messages to 1st array from 2nd one
      * @param messages output array (only users' messages)
      * @param absMessagesVector input array (all messages)
-     * @param messageIdSet set of unique message IDs
+     * @param messageIdSet set of unique message IDs (to exclude duplications when overlapping arrays are being merged)
      */
     private static void getNonEmptyMessagesFromHistory(TLVector<TLAbsMessage> messages, TLVector<TLAbsMessage> absMessagesVector, Set<Integer> messageIdSet) {
         for (TLAbsMessage absMessage: absMessagesVector){
             // message should not be TLMessageEmpty (-> TLMessage or TLMessageService)
             if (!(absMessage instanceof TLMessageEmpty)){
-                if (!(messageIdSet.contains(((TLMessage) absMessage).getId()))){
-                    messages.add(absMessage);
-                    messageIdSet.add(((TLMessage) absMessage).getId());
+                if (absMessage instanceof TLMessage){
+                    if (!(messageIdSet.contains(((TLMessage) absMessage).getId()))){
+                        messages.add(absMessage);
+                        messageIdSet.add(((TLMessage) absMessage).getId());
+                    }
+                } else if (absMessage instanceof TLMessageService){
+                    if (!(messageIdSet.contains(((TLMessageService) absMessage).getId()))){
+                        messages.add(absMessage);
+                        messageIdSet.add(((TLMessageService) absMessage).getId());
+                    }
                 }
             }
         }
+    }
+
+    /**
+     * Initiates offset id
+     * @param dialog dialog
+     * @param messagesHashMap top messages
+     */
+    private static int initOffsetsId(TLDialog dialog, HashMap<Integer, TLAbsMessage> messagesHashMap){
+        TLAbsMessage msg = messagesHashMap.get(dialog.getPeer().getId());
+        int offId;
+        if (msg instanceof TLMessage){
+            offId = ((TLMessage) msg).getId();
+        } else if (msg instanceof TLMessageService){
+            offId = ((TLMessageService) msg).getId();
+        } else {
+            offId = 0;
+        }
+        return offId;
+    }
+
+    /**
+     * Initiates offset date
+     * @param dialog dialog
+     * @param messagesHashMap top messages
+     */
+    private static int initOffsetsDate(TLDialog dialog, HashMap<Integer, TLAbsMessage> messagesHashMap){
+        TLAbsMessage msg = messagesHashMap.get(dialog.getPeer().getId());
+        int offDate;
+        if (msg instanceof TLMessage){
+            offDate = ((TLMessage) msg).getDate();
+        } else if (msg instanceof TLMessageService){
+            offDate = ((TLMessageService) msg).getDate();
+        } else {
+            offDate = 0;
+        }
+        return offDate;
+    }
+
+    /**
+     * Reset offset id
+     * @param msg message
+     */
+    private static int resetOffsetsId(TLAbsMessage msg){
+        int offId;
+        if (msg instanceof TLMessage){
+            offId = ((TLMessage) msg).getId();
+        } else if (msg instanceof TLMessageService){
+            offId = ((TLMessageService) msg).getId();
+        } else {
+            offId = 0;
+        }
+        return offId;
+    }
+
+    /**
+     * Reset offset date
+     * @param msg message
+     */
+    private static int resetOffsetsDate(TLAbsMessage msg){
+        int offDate;
+        if (msg instanceof TLMessage){
+            offDate = ((TLMessage) msg).getDate();
+        } else if (msg instanceof TLMessageService){
+            offDate = ((TLMessageService) msg).getDate();
+        } else {
+            offDate = 0;
+        }
+        return offDate;
     }
 
 }

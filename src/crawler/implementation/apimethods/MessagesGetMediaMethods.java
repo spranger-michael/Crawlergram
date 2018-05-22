@@ -53,14 +53,11 @@ public class MessagesGetMediaMethods {
      * @param   path    path for the files saving
      * @see TelegramApi
      */
-    public static void saveMediaFromDialogsMessages(TelegramApi api, TLVector<TLDialog> dialogs, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap, int limit, String path) {
+    public static void saveMediaFromDialogsMessages(TelegramApi api, TLVector<TLDialog> dialogs, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap, HashMap<Integer, TLAbsMessage> messagesHashMap, int limit, String path) {
         for (TLDialog dialog : dialogs) {
             // make actions upon each message in loop
-            TLVector<TLAbsMessage> messages = DialogsHistoryMethods.getWholeMessagesHistory(api, dialog, chatsHashMap, usersHashMap, limit);
+            TLVector<TLAbsMessage> messages = DialogsHistoryMethods.getWholeMessagesHistory(api, dialog, chatsHashMap, usersHashMap, messagesHashMap, limit);
             for (TLAbsMessage message : messages) {
-
-                //TODO redo downloads
-
                 // write the message content in console
                 ConsoleOutputMethods.testMessageOutputConsole(message);
                 // save message media to file

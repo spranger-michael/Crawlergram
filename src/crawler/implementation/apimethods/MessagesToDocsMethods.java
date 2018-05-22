@@ -48,7 +48,7 @@ public class MessagesToDocsMethods {
 
             i++;
             System.out.println(i);
-            System.out.println(ConsoleOutputMethods.testOutHashMapObjectbyKey(dialog.getPeer().getId(), chatsHashMap,usersHashMap));
+            System.out.println(ConsoleOutputMethods.testOutHashMapObjectByKey(dialog.getPeer().getId(), chatsHashMap,usersHashMap));
 
             // make actions upon each message in loop
             TLVector<TLAbsMessage> messages = DialogsHistoryMethods.getOnlyUsersMessagesHistory(api, dialog, chatsHashMap, usersHashMap, limit);
