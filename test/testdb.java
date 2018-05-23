@@ -5,7 +5,7 @@
  */
 
 
-import crawler.db.mongo.MongoStorage;
+import crawler.db.mongo.MongoDBStorage;
 import crawler.implementation.structures.MessageDoc;
 
 import java.util.*;
@@ -20,12 +20,11 @@ public class testdb {
 
         // DB "telegram" location - localhost:27017
         // User "telegramJ" - db.createUser({user: "telegramJ", pwd: "cart", roles: [{ role: "readWrite", db: "telegram" }]})
-        MongoStorage mongo = new MongoStorage("telegramJ", "telegram", "cart", "localhost", 27017);
+        MongoDBStorage mongo = new MongoDBStorage("telegramJ", "telegram", "cart", "localhost", 27017, "fs");
 
         HashMap<Integer, List<MessageDoc>> hm = mongo.dbReadMessageDocsHashMap();
 
         /*
-
         MongoCollection<Document> collection = database.getCollection("testColl");
         collection.createIndex(Indexes.ascending("name"));
 

@@ -10,7 +10,8 @@
 
 package crawler.mains;
 
-import crawler.db.mongo.MongoStorage;
+import crawler.db.DBStorage;
+import crawler.db.mongo.MongoDBStorage;
 import crawler.implementation.apicallback.ApiCallbackImplemented;
 import crawler.implementation.apimethods.AuthMethods;
 import crawler.implementation.apimethods.DialogsHistoryMethods;
@@ -42,7 +43,7 @@ public class CrawlerMain {
 
         // DB "telegram" location - localhost:27017
         // User "telegramJ" - db.createUser({user: "telegramJ", pwd: "cart", roles: [{ role: "readWrite", db: "telegram" }]})
-        MongoStorage mongo = new MongoStorage("telegramJ", "telegram", "cart", "localhost", 27017);
+        DBStorage dbStorage = new MongoDBStorage("telegramJ", "telegram", "cart", "localhost", 27017, "fs");
 
         //register loggers
         LogMethods.registerLogs("logs");
@@ -83,7 +84,7 @@ public class CrawlerMain {
         int messagesLimit = 1000; // maximum number of retrieved messages from each dialog
 
         //Saves messages and media and outputs messages in console:
-        MessagesAndMediaToDB.saveMessagesMediaToDB(api, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit);
+        MessagesAndMediaToDB.saveMessagesOnlyToDB(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit);
 
         //mongo.dbWriteMessageDocsHashMap(docsInDialogs);
 

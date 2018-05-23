@@ -44,7 +44,11 @@ public class DialogsHistoryMethods {
      * @see TLVector
      * @see HashMap
      */
-    public static void getDialogsChatsUsers(TelegramApi api, TLVector<TLDialog> dialogs, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap,  HashMap<Integer, TLAbsMessage> messagesHashMap){
+    public static void getDialogsChatsUsers(TelegramApi api,
+                                            TLVector<TLDialog> dialogs,
+                                            HashMap<Integer, TLAbsChat> chatsHashMap,
+                                            HashMap<Integer, TLAbsUser> usersHashMap,
+                                            HashMap<Integer, TLAbsMessage> messagesHashMap){
         TLAbsDialogs absDialogs = null;
         Set<Integer> dialogIdSet = new HashSet<>();
         // read dialogs
@@ -104,7 +108,12 @@ public class DialogsHistoryMethods {
      * @param chatsHashMap chats map
      * @param usersHashMap users map
      */
-    private static void setDialogsChatsUsersStructures(TLAbsDialogs absDialogs, TLVector<TLDialog> dialogs, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap, HashMap<Integer, TLAbsMessage> messagesHashMap, Set<Integer> dialogSet){
+    private static void setDialogsChatsUsersStructures(TLAbsDialogs absDialogs,
+                                                       TLVector<TLDialog> dialogs,
+                                                       HashMap<Integer, TLAbsChat> chatsHashMap,
+                                                       HashMap<Integer, TLAbsUser> usersHashMap,
+                                                       HashMap<Integer, TLAbsMessage> messagesHashMap,
+                                                       Set<Integer> dialogSet){
         DataStructuresMethods.insertIntoChatsHashMap(chatsHashMap, absDialogs.getChats());
         DataStructuresMethods.insertIntoUsersHashMap(usersHashMap, absDialogs.getUsers());
         DataStructuresMethods.insertIntoMessagesHashMap(messagesHashMap, absDialogs.getMessages());
@@ -164,7 +173,11 @@ public class DialogsHistoryMethods {
      * @see TelegramApi
      * @see AbsApiState
      */
-    public static TLVector<TLAbsMessage> getOnlyUsersMessagesHistory(TelegramApi api, TLDialog dialog, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap, int limit) {
+    public static TLVector<TLAbsMessage> getOnlyUsersMessagesHistory(TelegramApi api,
+                                                                     TLDialog dialog,
+                                                                     HashMap<Integer, TLAbsChat> chatsHashMap,
+                                                                     HashMap<Integer, TLAbsUser> usersHashMap,
+                                                                     int limit) {
         // sleep time (Telegram can send FLOOD WAIT ERROR if the requests are done too often)
         int sleepTime = 100;
         if ((limit > 1000) || (limit == 0)){sleepTime = 1000;}
@@ -228,7 +241,9 @@ public class DialogsHistoryMethods {
      * @param absMessagesVector input array (all messages)
      * @param messageIdSet set of unique message IDs
      */
-    private static void getOnlyUsersMessagesFromHistory(TLVector<TLAbsMessage> messages, TLVector<TLAbsMessage> absMessagesVector, Set<Integer> messageIdSet) {
+    private static void getOnlyUsersMessagesFromHistory(TLVector<TLAbsMessage> messages,
+                                                        TLVector<TLAbsMessage> absMessagesVector,
+                                                        Set<Integer> messageIdSet) {
         for (TLAbsMessage absMessage: absMessagesVector){
             // message should be TLMessage, not TLMessageEmpty or TLMessageService
             if (absMessage instanceof TLMessage){
@@ -267,7 +282,12 @@ public class DialogsHistoryMethods {
      * @see TelegramApi
      * @see AbsApiState
      */
-    public static TLVector<TLAbsMessage> getWholeMessagesHistory(TelegramApi api, TLDialog dialog, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap, HashMap<Integer, TLAbsMessage> messagesHashMap, int limit) {
+    public static TLVector<TLAbsMessage> getWholeMessagesHistory(TelegramApi api,
+                                                                 TLDialog dialog,
+                                                                 HashMap<Integer, TLAbsChat> chatsHashMap,
+                                                                 HashMap<Integer, TLAbsUser> usersHashMap,
+                                                                 HashMap<Integer, TLAbsMessage> messagesHashMap,
+                                                                 int limit) {
         // sleep time (Telegram can send FLOOD WAIT ERROR if the requests are done too often)
         int sleepTime = 1;
         if ((limit > 1000) || (limit == 0)){sleepTime = 100;}
@@ -315,7 +335,7 @@ public class DialogsHistoryMethods {
     }
 
     /**
-     * Try 3 times to get messages (until depth <4), if fails - return null. Each time sleep time increases x3.
+     * Try 2 times to get messages, if fails - return null. Each iteration time sleep time increases x10.
      * @param api TelegramApi instance for RPC request
      * @param getHistory request object
      * @param sleepTime sleep time
@@ -323,7 +343,9 @@ public class DialogsHistoryMethods {
      * @see TelegramApi
      * @see TLRequestMessagesGetHistory
      */
-    private static TLAbsMessages sleepAndRequestMessages(TelegramApi api, TLRequestMessagesGetHistory getHistory, int sleepTime, int depth){
+    private static TLAbsMessages sleepAndRequestMessages(TelegramApi api,
+                                                         TLRequestMessagesGetHistory getHistory,
+                                                         int sleepTime, int depth){
         Integer time;
         if ((depth != 0) && (sleepTime < 1000)){
             time = 1000;

@@ -38,7 +38,11 @@ public class MessagesToDocsMethods {
      * @param   docThreshold    threshold between long and short chat
      * @see TelegramApi
      */
-    public static HashMap<Integer, List<MessageDoc>> apiMessagesToDocuments(TelegramApi api, TLVector<TLDialog> dialogs, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap, int limit, int docThreshold){
+    public static HashMap<Integer, List<MessageDoc>> apiMessagesToDocuments(TelegramApi api,
+                                                                            TLVector<TLDialog> dialogs,
+                                                                            HashMap<Integer, TLAbsChat> chatsHashMap,
+                                                                            HashMap<Integer, TLAbsUser> usersHashMap,
+                                                                            int limit, int docThreshold){
         HashMap<Integer, List<MessageDoc>> docsInDialogs = new HashMap<>();
 
         System.out.println(dialogs.size());
@@ -75,7 +79,9 @@ public class MessagesToDocsMethods {
      * @see TLVector<TLAbsMessage>
      * @see TLAbsMessage
      */
-    private static  List<MessageDoc> apiMessagesToDocs(TLDialog dialog, HashMap<Integer, TLAbsChat> chatsHashMap, TLVector<TLAbsMessage> messages, int docThreshold){
+    private static  List<MessageDoc> apiMessagesToDocs(TLDialog dialog,
+                                                       HashMap<Integer, TLAbsChat> chatsHashMap,
+                                                       TLVector<TLAbsMessage> messages, int docThreshold){
         List<MessageDoc> docs = new ArrayList<>();
         //if channel
         if (dialog.getPeer() instanceof TLPeerChannel) {

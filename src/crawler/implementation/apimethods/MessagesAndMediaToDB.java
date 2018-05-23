@@ -6,7 +6,8 @@
 
 package crawler.implementation.apimethods;
 
-import crawler.output.console.ConsoleOutputMethods;
+import crawler.db.Const;
+import crawler.db.DBStorage;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.dialog.TLDialog;
 import org.telegram.api.engine.TelegramApi;
@@ -18,25 +19,67 @@ import java.util.HashMap;
 
 public class MessagesAndMediaToDB {
 
-    public static void saveMessagesMediaToDB(TelegramApi api, TLVector<TLDialog> dialogs, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap, HashMap<Integer, TLAbsMessage> messagesHashMap, int limit) {
+    /**
+     * Writes only messages to DB
+     * @param	api  TelegramApi instance for RPC request
+     * @param   dbStorage   database instance
+     * @param   dialogs dialogs TLVector
+     * @param   chatsHashMap    chats hashmap
+     * @param   usersHashMap    users hashmap
+     * @param   limit   maximum number of retrieved messages from each dialog (0 if no limit)
+     */
+    public static void saveMessagesOnlyToDB(TelegramApi api,
+                                            DBStorage dbStorage,
+                                            TLVector<TLDialog> dialogs,
+                                            HashMap<Integer, TLAbsChat> chatsHashMap,
+                                            HashMap<Integer, TLAbsUser> usersHashMap,
+                                            HashMap<Integer, TLAbsMessage> messagesHashMap,
+                                            int limit) {
+        for (TLDialog dialog : dialogs) {
+            // writes messages of the dialog to "messages + [dialog_id]" table/collection/etc.
+            dbStorage.setTarget(Const.MSG_DIAL_PREF + dialog.getPeer().getId());
+            //reads the messages
+            TLVector<TLAbsMessage> absMessages = DialogsHistoryMethods.getWholeMessagesHistory(api, dialog, chatsHashMap, usersHashMap, messagesHashMap, limit);
+            // write messages
+            dbStorage.writeTLAbsMessages(absMessages);
+            System.err.println(dialog.getPeer().getId()+ " "+ absMessages.size());
+            // sleep between transmissions to avoid flood wait
+            try {Thread.sleep(1000);} catch (InterruptedException ignored) {}
+        }
+    }
+
+
+
+
+
+
+
+    public static void saveMessagesAndMediaToDB(TelegramApi api,
+                                                DBStorage dbStorage,
+                                                TLVector<TLDialog> dialogs,
+                                                HashMap<Integer, TLAbsChat> chatsHashMap,
+                                                HashMap<Integer, TLAbsUser> usersHashMap,
+                                                HashMap<Integer, TLAbsMessage> messagesHashMap,
+                                                int limit) {
         for (TLDialog dialog : dialogs) {
             // make actions upon each message in loop
-            TLVector<TLAbsMessage> messages = DialogsHistoryMethods.getWholeMessagesHistory(api, dialog, chatsHashMap, usersHashMap, messagesHashMap, limit);
-            for (TLAbsMessage message : messages) {
+            TLVector<TLAbsMessage> absMessages = DialogsHistoryMethods.getWholeMessagesHistory(api, dialog, chatsHashMap, usersHashMap, messagesHashMap, limit);
+            for (TLAbsMessage absMessage : absMessages) {
 
                 //TODO redo downloads
 
-                // write the message content in console
-                //ConsoleOutputMethods.testMessageOutputConsole(message);
-                // save message media to file
-                //messageDownloadMedia(api, message, path);
+                // write the absMessage content in console
+                //ConsoleOutputMethods.testMessageOutputConsole(absMessage);
+                // save absMessage media to file
+                //messageDownloadMedia(api, absMessage, path);
             }
 
-            System.err.println(dialog.getPeer().getId()+ " "+ messages.size());
+            System.err.println(dialog.getPeer().getId()+ " "+ absMessages.size());
 
             // sleep between transmissions to avoid flood wait
             try {Thread.sleep(1000);} catch (InterruptedException ignored) {}
         }
     }
+
 
 }

@@ -8,7 +8,6 @@ import crawler.implementation.apicallback.ApiCallbackImplemented;
 import crawler.implementation.apimethods.AuthMethods;
 import crawler.implementation.apimethods.DialogsHistoryMethods;
 import crawler.implementation.apimethods.MessagesAndMediaToDB;
-import crawler.implementation.apimethods.SetTLObjectsMethods;
 import crawler.implementation.logs.ApiLoggerInterfaceImplemented;
 import crawler.implementation.logs.MTProtoLoggerInterfaceImplemented;
 import org.telegram.api.chat.TLAbsChat;
@@ -17,17 +16,13 @@ import org.telegram.api.engine.ApiCallback;
 import org.telegram.api.engine.AppInfo;
 import org.telegram.api.engine.TelegramApi;
 import org.telegram.api.engine.storage.AbsApiState;
-import org.telegram.api.functions.messages.TLRequestMessagesGetHistory;
 import org.telegram.api.message.TLAbsMessage;
-import org.telegram.api.messages.TLAbsMessages;
 import org.telegram.api.user.TLAbsUser;
 import org.telegram.bot.kernel.engine.MemoryApiState;
 import org.telegram.tl.TLVector;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.concurrent.TimeoutException;
 
 public class testmsg {
 
@@ -60,7 +55,7 @@ public class testmsg {
 
 
 
-        MessagesAndMediaToDB.saveMessagesMediaToDB(api, dialogs, chatsHashMap, usersHashMap, messagesHashMap, 0);
+        //MessagesAndMediaToDB.saveMessagesOnlyToDB(api, dialogs, chatsHashMap, usersHashMap, messagesHashMap, 1000);
 
 
 

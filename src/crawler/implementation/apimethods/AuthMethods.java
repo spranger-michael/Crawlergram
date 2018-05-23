@@ -55,7 +55,8 @@ public class AuthMethods {
      * @see TelegramApi
      * @see AbsApiState
      */
-    public static void auth(TelegramApi api, AbsApiState apiState, int key, String hash, String phoneNum, Optional<String> nameOpt, Optional<String> surnameOpt){
+    public static void auth(TelegramApi api, AbsApiState apiState, int key,
+                            String hash, String phoneNum, Optional<String> nameOpt, Optional<String> surnameOpt){
         String name = nameOpt.orElse("John");
         String surname = surnameOpt.orElse("Smith");
         try {

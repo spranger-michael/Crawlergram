@@ -157,7 +157,8 @@ public class SetTLObjectsMethods {
      * @param	addOff	additional offset (use 0 as default)
      * @see	TLRequestMessagesGetHistory
      */
-    public static TLRequestMessagesGetHistory getMesHistSet(TLAbsInputPeer peer, int limit, int offDate, int offId, int minId, int maxId, int addOff){
+    public static TLRequestMessagesGetHistory getMesHistSet(TLAbsInputPeer peer, int limit, int offDate,
+                                                            int offId, int minId, int maxId, int addOff){
         TLRequestMessagesGetHistory getMesHist = new TLRequestMessagesGetHistory();
         getMesHist.setPeer(peer);
         getMesHist.setLimit(limit);
@@ -298,7 +299,10 @@ public class SetTLObjectsMethods {
      * @see HashMap <Integer,  TLAbsUser >
      * @see HashMap<Integer,  TLAbsChat >
      */
-    public static TLRequestMessagesGetHistory getHistoryRequestSet(TLDialog dialog, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap, int limit, int offDate, int offId){
+    public static TLRequestMessagesGetHistory getHistoryRequestSet(TLDialog dialog,
+                                                                   HashMap<Integer, TLAbsChat> chatsHashMap,
+                                                                   HashMap<Integer, TLAbsUser> usersHashMap,
+                                                                   int limit, int offDate, int offId){
         TLRequestMessagesGetHistory getHistory = new TLRequestMessagesGetHistory();
         int peerId = dialog.getPeer().getId();
         // if dialog is a channel
@@ -326,7 +330,9 @@ public class SetTLObjectsMethods {
      * @see HashMap <Integer,  TLAbsUser >
      * @see HashMap<Integer,  TLAbsChat >
      */
-    public static TLAbsInputPeer getAbsInputPeerSet(TLAbsPeer peer, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap){
+    public static TLAbsInputPeer getAbsInputPeerSet(TLAbsPeer peer,
+                                                    HashMap<Integer, TLAbsChat> chatsHashMap,
+                                                    HashMap<Integer, TLAbsUser> usersHashMap){
         TLAbsInputPeer absPeer = new TLInputPeerEmpty();
         int peerId = peer.getId();
         if (peer instanceof TLPeerChannel) {

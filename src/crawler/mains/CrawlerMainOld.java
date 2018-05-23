@@ -11,7 +11,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import crawler.db.mongo.MongoStorage;
+import crawler.db.mongo.MongoDBStorage;
 import crawler.implementation.apicallback.ApiCallbackImplemented;
 import crawler.implementation.apimethods.*;
 import crawler.implementation.structures.DataStructuresMethods;
@@ -41,7 +41,7 @@ public class CrawlerMainOld {
 
         // DB "telegram" location - localhost:27017
         // User "telegramJ" - db.createUser({user: "telegramJ", pwd: "cart", roles: [{ role: "readWrite", db: "telegram" }]})
-        MongoStorage mongo = new MongoStorage("telegramJ", "telegram", "cart", "localhost", 27017);
+        MongoDBStorage mongo = new MongoDBStorage("telegramJ", "telegram", "cart", "localhost", 27017, "fs");
 
         // create & check files for logs
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss-SSS");

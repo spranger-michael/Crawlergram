@@ -82,7 +82,8 @@ public class DataStructuresMethods {
      * @see HashMap<Integer, TLAbsUser>
      * @see TLVector<TLAbsUser>
      */
-    public static void insertIntoMessagesHashMap(HashMap<Integer, TLAbsMessage> messagesHashMap, TLVector<TLAbsMessage> messages){
+    public static void insertIntoMessagesHashMap(HashMap<Integer, TLAbsMessage> messagesHashMap,
+                                                 TLVector<TLAbsMessage> messages){
         for (TLAbsMessage message: messages){
             if ((message instanceof TLMessage) && !messagesHashMap.containsKey(message.getChatId())){
                 messagesHashMap.put(message.getChatId(), message);
