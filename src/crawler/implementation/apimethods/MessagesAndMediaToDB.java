@@ -39,8 +39,11 @@ public class MessagesAndMediaToDB {
         for (TLDialog dialog : dialogs) {
             TLObject fullDialog = DialogsHistoryMethods.getFullDialog(api, dialog, chatsHashMap, usersHashMap);
             // writes messages of the dialog to "messages + [dialog_id]" table/collection/etc.
-
             dbStorage.setTarget(Const.MSG_DIAL_PREF + dialog.getPeer().getId());
+
+            TLObject participants = DialogsHistoryMethods.getParticipants(api, fullDialog, chatsHashMap, usersHashMap, 0);
+            System.out.println();
+
             //reads the messages
 
             /*
@@ -51,7 +54,6 @@ public class MessagesAndMediaToDB {
             // sleep between transmissions to avoid flood wait
             try {Thread.sleep(1000);} catch (InterruptedException ignored) {}
             */
-
         }
     }
 

@@ -8,13 +8,20 @@ package crawler.implementation.apimethods;
 
 import crawler.implementation.structures.DataStructuresMethods;
 import org.telegram.api.chat.TLAbsChat;
+import org.telegram.api.chat.TLAbsChatFull;
 import org.telegram.api.chat.TLChat;
+import org.telegram.api.chat.TLChatFull;
 import org.telegram.api.chat.channel.TLChannel;
+import org.telegram.api.chat.channel.TLChannelFull;
+import org.telegram.api.chat.participant.chatparticipants.TLAbsChatParticipants;
+import org.telegram.api.chat.participant.chatparticipants.TLChatParticipants;
+import org.telegram.api.chat.participant.chatparticipants.TLChatParticipantsForbidden;
 import org.telegram.api.dialog.TLDialog;
 import org.telegram.api.engine.RpcException;
 import org.telegram.api.engine.TelegramApi;
 import org.telegram.api.engine.storage.AbsApiState;
 import org.telegram.api.functions.channels.TLRequestChannelsGetFullChannel;
+import org.telegram.api.functions.channels.TLRequestChannelsGetParticipants;
 import org.telegram.api.functions.messages.TLRequestMessagesGetDialogs;
 import org.telegram.api.functions.messages.TLRequestMessagesGetFullChat;
 import org.telegram.api.functions.messages.TLRequestMessagesGetHistory;
@@ -33,6 +40,7 @@ import org.telegram.api.peer.TLPeerChannel;
 import org.telegram.api.peer.TLPeerChat;
 import org.telegram.api.peer.TLPeerUser;
 import org.telegram.api.user.TLAbsUser;
+import org.telegram.api.user.TLUserFull;
 import org.telegram.tl.TLObject;
 import org.telegram.tl.TLVector;
 
@@ -543,6 +551,40 @@ public class DialogsHistoryMethods {
         return fullDialog;
     }
 
+    /**
+     * Gets participants from full chats (all), channels (recent ones) and user
+     * @param full
+     * @return
+     */
+    public static TLObject getParticipants(TelegramApi api, TLObject full, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap, int filter) {
+        TLObject participants = null;
 
+        if (full instanceof TLMessagesChatFull) {
+            TLAbsChatFull absChatFull = ((TLMessagesChatFull) full).getFullChat();
+            // update the hasmaps
+            DataStructuresMethods.insertIntoChatsHashMap(chatsHashMap, ((TLMessagesChatFull) full).getChats());
+            DataStructuresMethods.insertIntoUsersHashMap(usersHashMap, ((TLMessagesChatFull) full).getUsers());
+            //check if chat full or channel full
+            if (absChatFull instanceof TLChannelFull) {
+                TLRequestChannelsGetParticipants getPartic = SetTLObjectsMethods.getRecentChannelParticipantsRequestSet(absChatFull.getId(), chatsHashMap, filter);
+                try {
+                    participants = api.doRpcCall(getPartic);
+                } catch (RpcException e) {
+                    System.err.println(e.getErrorTag() + " " + e.getErrorCode());
+                } catch (TimeoutException | IOException e) {
+                    System.err.println(e.getMessage());
+                }
+            } else if (absChatFull instanceof TLChatFull) {
+                TLAbsChatParticipants p = ((TLChatFull) absChatFull).getParticipants();
+                if (p instanceof TLChatParticipants) {
+                    participants = p;
+                }
+            }
+
+        } else if (full instanceof TLUserFull) {
+            participants = full; // redundancy for clearance
+        } else {}
+        return participants;
+    }
 
 }

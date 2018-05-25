@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Scanner;
 
+import org.telegram.api.channel.participants.filters.*;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.chat.channel.TLChannel;
 import org.telegram.api.chat.channel.TLChannelForbidden;
@@ -19,6 +20,7 @@ import org.telegram.api.functions.auth.TLRequestAuthSendCode;
 import org.telegram.api.functions.auth.TLRequestAuthSignIn;
 import org.telegram.api.functions.auth.TLRequestAuthSignUp;
 import org.telegram.api.functions.channels.TLRequestChannelsGetFullChannel;
+import org.telegram.api.functions.channels.TLRequestChannelsGetParticipants;
 import org.telegram.api.functions.messages.TLRequestMessagesGetDialogs;
 import org.telegram.api.functions.messages.TLRequestMessagesGetFullChat;
 import org.telegram.api.functions.messages.TLRequestMessagesGetHistory;
@@ -468,6 +470,29 @@ public class SetTLObjectsMethods {
             iu = new TLInputUserEmpty();
         }
         return iu;
+    }
+
+    /**
+     * Sets the request to return participants of channel
+     * @param peerId peer id
+     * @param chatsHashMap chats
+     * @param filterType 0 - recent, 1 - admins, 2 - kicked, 3 - bots, default - recent
+     */
+    public static TLRequestChannelsGetParticipants getRecentChannelParticipantsRequestSet(int peerId, HashMap<Integer, TLAbsChat> chatsHashMap, int filterType){
+        TLAbsChannelParticipantsFilter filter;
+        switch (filterType){
+            case 0: filter = new TLChannelParticipantsFilterRecent(); break;
+            case 1: filter = new TLChannelParticipantsFilterAdmins(); break;
+            case 2: filter = new TLChannelParticipantsFilterKicked(); break;
+            case 3: filter = new TLChannelParticipantsFilterBots(); break;
+            default: filter = new TLChannelParticipantsFilterRecent(); break;
+        }
+        TLRequestChannelsGetParticipants getPartic = new TLRequestChannelsGetParticipants();
+        getPartic.setChannel(absInputChannelSet(peerId, chatsHashMap));
+        getPartic.setOffset(0);
+        getPartic.setLimit(1000);
+        getPartic.setFilter(filter);
+        return getPartic;
     }
 
 }
