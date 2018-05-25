@@ -18,13 +18,22 @@ import org.telegram.api.functions.auth.TLRequestAuthImportAuthorization;
 import org.telegram.api.functions.auth.TLRequestAuthSendCode;
 import org.telegram.api.functions.auth.TLRequestAuthSignIn;
 import org.telegram.api.functions.auth.TLRequestAuthSignUp;
+import org.telegram.api.functions.channels.TLRequestChannelsGetFullChannel;
 import org.telegram.api.functions.messages.TLRequestMessagesGetDialogs;
+import org.telegram.api.functions.messages.TLRequestMessagesGetFullChat;
 import org.telegram.api.functions.messages.TLRequestMessagesGetHistory;
 import org.telegram.api.functions.upload.TLRequestUploadGetFile;
+import org.telegram.api.functions.users.TLRequestUsersGetFullUser;
+import org.telegram.api.input.chat.TLAbsInputChannel;
+import org.telegram.api.input.chat.TLInputChannel;
 import org.telegram.api.input.filelocation.TLAbsInputFileLocation;
 import org.telegram.api.input.filelocation.TLInputDocumentFileLocation;
 import org.telegram.api.input.filelocation.TLInputFileLocation;
 import org.telegram.api.input.peer.*;
+import org.telegram.api.input.user.TLAbsInputUser;
+import org.telegram.api.input.user.TLInputUser;
+import org.telegram.api.input.user.TLInputUserEmpty;
+import org.telegram.api.input.user.TLInputUserSelf;
 import org.telegram.api.peer.TLAbsPeer;
 import org.telegram.api.peer.TLPeerChannel;
 import org.telegram.api.peer.TLPeerChat;
@@ -379,6 +388,86 @@ public class SetTLObjectsMethods {
         TLUser user = (TLUser) usersHashMap.get(peerId);
         TLInputPeerUser inputPeerUser = SetTLObjectsMethods.inputPeerUserSet(peerId, user.getAccessHash());
         return inputPeerUser;
+    }
+
+    /**
+     * Sets TLRequestChannelsGetFullChannel
+     * @param peerId peerId
+     * @param chatsHashMap hashmap with chats
+     * @see  TLRequestChannelsGetFullChannel
+     */
+    public static TLRequestChannelsGetFullChannel getFullChannelRequestSet(int peerId, HashMap<Integer, TLAbsChat> chatsHashMap){
+        TLRequestChannelsGetFullChannel fullChannel = new TLRequestChannelsGetFullChannel();
+        fullChannel.setChannel(absInputChannelSet(peerId, chatsHashMap));
+        return fullChannel;
+    }
+
+    /**
+     * Sets TLRequestChannelsGetFullChannel
+     * @param peerId peerId
+     * @see  TLRequestChannelsGetFullChannel
+     */
+    public static TLRequestMessagesGetFullChat getFullChatRequestSet(int peerId, HashMap<Integer, TLAbsChat> chatsHashMap){
+        TLRequestMessagesGetFullChat fullChat = new TLRequestMessagesGetFullChat();
+        TLAbsChat chat = chatsHashMap.get(peerId);
+        fullChat.setChatId(chat.getId());
+        return fullChat;
+    }
+
+    /**
+     * Sets TLRequestUsersGetFullUser
+     * @param peerId peerId
+     * @param usersHashMap users
+     * @see  TLRequestUsersGetFullUser
+     */
+    public static TLRequestUsersGetFullUser getFullUserRequestSet(int peerId, HashMap<Integer, TLAbsUser> usersHashMap){
+        TLRequestUsersGetFullUser fullUser = new TLRequestUsersGetFullUser();
+        fullUser.setId(absInputUserSet(peerId, usersHashMap));
+        return fullUser;
+    }
+
+
+    /**
+     * Sets TLAbsInputChannel
+     * @param  peerId peerId
+     * @param  chatsHashMap hashmap with chats
+     * @see  TLAbsInputChannel
+     */
+    private static TLAbsInputChannel absInputChannelSet(int peerId, HashMap<Integer, TLAbsChat> chatsHashMap){
+        TLInputChannel ic = new TLInputChannel();
+        if (chatsHashMap.get(peerId) instanceof TLChannel){
+            TLChannel chan = (TLChannel) chatsHashMap.get(peerId);
+            ic.setAccessHash(chan.getAccessHash());
+            ic.setChannelId(chan.getId());
+        } else if (chatsHashMap.get(peerId) instanceof TLChannelForbidden){
+            TLChannelForbidden chan = (TLChannelForbidden) chatsHashMap.get(peerId);
+            ic.setAccessHash(chan.getAccessHash());
+            ic.setChannelId(chan.getId());
+        }
+        return ic;
+    }
+
+    /**
+     * Sets TLAbsInputuser
+     * @param  peerId peerId
+     * @param  usersHashMap hashmap with users
+     * @see  TLAbsInputChannel
+     */
+    private static TLAbsInputUser absInputUserSet(int peerId, HashMap<Integer, TLAbsUser> usersHashMap) {
+        TLAbsInputUser iu;
+        if (usersHashMap.get(peerId) instanceof TLUser){
+            TLUser u = (TLUser) usersHashMap.get(peerId);
+            if (u.isSelf()){
+                iu = new TLInputUserSelf();
+            } else {
+                iu = new TLInputUser();
+                ((TLInputUser) iu).setAccessHash(u.getAccessHash());
+                ((TLInputUser) iu).setUserId(u.getId());
+            }
+        } else {
+            iu = new TLInputUserEmpty();
+        }
+        return iu;
     }
 
 }

@@ -29,6 +29,22 @@ public interface DBStorage {
     void setTarget(String target);
 
     /**
+     * Drops target table, collection, etc. in db
+     * @param target
+     */
+    void dropTarget(String target);
+
+    /**
+     * Drops current db
+     */
+    void dropDatabase();
+
+    /**
+     * Writes object to DB
+     */
+    void write(Object obj);
+
+    /**
      * Writes message from dialogs to DB (each dialog to a single collection)
      * @param absMessage
      */
@@ -57,4 +73,7 @@ public interface DBStorage {
      * @param chatsHashMap
      */
     void writeTLAbsChats(HashMap<Integer, TLAbsChat> chatsHashMap);
+
+
+
 }

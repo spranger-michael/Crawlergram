@@ -13,6 +13,7 @@ import org.telegram.api.dialog.TLDialog;
 import org.telegram.api.engine.TelegramApi;
 import org.telegram.api.message.TLAbsMessage;
 import org.telegram.api.user.TLAbsUser;
+import org.telegram.tl.TLObject;
 import org.telegram.tl.TLVector;
 
 import java.util.HashMap;
@@ -36,22 +37,23 @@ public class MessagesAndMediaToDB {
                                             HashMap<Integer, TLAbsMessage> messagesHashMap,
                                             int limit) {
         for (TLDialog dialog : dialogs) {
+            TLObject fullDialog = DialogsHistoryMethods.getFullDialog(api, dialog, chatsHashMap, usersHashMap);
             // writes messages of the dialog to "messages + [dialog_id]" table/collection/etc.
+
             dbStorage.setTarget(Const.MSG_DIAL_PREF + dialog.getPeer().getId());
             //reads the messages
+
+            /*
             TLVector<TLAbsMessage> absMessages = DialogsHistoryMethods.getWholeMessagesHistory(api, dialog, chatsHashMap, usersHashMap, messagesHashMap, limit);
             // write messages
             dbStorage.writeTLAbsMessages(absMessages);
             System.err.println(dialog.getPeer().getId()+ " "+ absMessages.size());
             // sleep between transmissions to avoid flood wait
             try {Thread.sleep(1000);} catch (InterruptedException ignored) {}
+            */
+
         }
     }
-
-
-
-
-
 
 
     public static void saveMessagesAndMediaToDB(TelegramApi api,

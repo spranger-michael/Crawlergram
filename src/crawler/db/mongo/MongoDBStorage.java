@@ -6,10 +6,7 @@
 
 package crawler.db.mongo;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
+import com.mongodb.*;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -191,8 +188,46 @@ public class MongoDBStorage implements DBStorage {
      * @param target target collection
      */
     @Override
-    public void setTarget(String target){
-        collection = database.getCollection(target);
+    public void setTarget(String target) {
+        try {
+            collection = database.getCollection(target);
+        } catch (MongoException e) {
+            System.err.println(e.getCode() + " " + e.getMessage());
+        }
+    }
+
+    /**
+     * Drops target collection
+     * @param target
+     */
+    @Override
+    public void dropTarget(String target) {
+        try{
+            database.getCollection(target).drop();
+        } catch (MongoException e){
+            System.err.println(e.getCode() + " " + e.getMessage());
+        }
+    }
+
+    /**
+     * Drops current db
+     */
+    @Override
+    public void dropDatabase() {
+        try{
+            database.drop();
+        } catch (MongoException e){
+            System.err.println(e.getCode() + " " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void write(Object obj) {
+        try{
+            collection.insertOne((Document) obj);
+        } catch (MongoException e){
+            System.err.println(e.getCode() + " " + e.getMessage());
+        }
     }
 
     /**
@@ -221,8 +256,12 @@ public class MongoDBStorage implements DBStorage {
      */
     @Override
     public void writeTLAbsMessages(TLVector<TLAbsMessage> absMessages) {
-        for (TLAbsMessage absMessage : absMessages) {
-            writeTLAbsMessage(absMessage);
+        try {
+            for (TLAbsMessage absMessage : absMessages) {
+                writeTLAbsMessage(absMessage);
+            }
+        } catch (MongoException e) {
+            System.err.println(e.getCode() + " " + e.getMessage());
         }
     }
 

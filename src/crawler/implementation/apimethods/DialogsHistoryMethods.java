@@ -8,21 +8,32 @@ package crawler.implementation.apimethods;
 
 import crawler.implementation.structures.DataStructuresMethods;
 import org.telegram.api.chat.TLAbsChat;
+import org.telegram.api.chat.TLChat;
+import org.telegram.api.chat.channel.TLChannel;
 import org.telegram.api.dialog.TLDialog;
 import org.telegram.api.engine.RpcException;
 import org.telegram.api.engine.TelegramApi;
 import org.telegram.api.engine.storage.AbsApiState;
+import org.telegram.api.functions.channels.TLRequestChannelsGetFullChannel;
 import org.telegram.api.functions.messages.TLRequestMessagesGetDialogs;
+import org.telegram.api.functions.messages.TLRequestMessagesGetFullChat;
 import org.telegram.api.functions.messages.TLRequestMessagesGetHistory;
+import org.telegram.api.functions.users.TLRequestUsersGetFullUser;
 import org.telegram.api.input.peer.TLAbsInputPeer;
 import org.telegram.api.message.TLAbsMessage;
 import org.telegram.api.message.TLMessage;
 import org.telegram.api.message.TLMessageEmpty;
 import org.telegram.api.message.TLMessageService;
 import org.telegram.api.messages.TLAbsMessages;
+import org.telegram.api.messages.TLMessagesChatFull;
 import org.telegram.api.messages.dialogs.TLAbsDialogs;
 import org.telegram.api.messages.dialogs.TLDialogsSlice;
+import org.telegram.api.peer.TLAbsPeer;
+import org.telegram.api.peer.TLPeerChannel;
+import org.telegram.api.peer.TLPeerChat;
+import org.telegram.api.peer.TLPeerUser;
 import org.telegram.api.user.TLAbsUser;
+import org.telegram.tl.TLObject;
 import org.telegram.tl.TLVector;
 
 import java.io.IOException;
@@ -472,5 +483,66 @@ public class DialogsHistoryMethods {
         }
         return offDate;
     }
+
+    /**
+     * gets full instance of dialog
+     * @param api api
+     * @param dialog dialog
+     * @param chatsHashMap chats
+     * @param usersHashMap users
+     * @return
+     */
+    public static TLObject getFullDialog(TelegramApi api,
+                                         TLDialog dialog,
+                                         HashMap<Integer, TLAbsChat> chatsHashMap,
+                                         HashMap<Integer, TLAbsUser> usersHashMap){
+        TLObject fullDialog = null;
+        TLAbsPeer peer = dialog.getPeer();
+        int peerId = peer.getId();
+        if (peer instanceof TLPeerChat){
+            //TODO Doesn't work, the problem may be in api
+            TLAbsChat chat = chatsHashMap.get(peer.getId());
+            if ((chat instanceof TLChat) && ((TLChat) chat).isMigratedTo()){
+                TLRequestChannelsGetFullChannel fullRequest = SetTLObjectsMethods.getFullChannelRequestSet(((TLChat) chat).getMigratedTo().getChannelId(), chatsHashMap);
+                try {
+                    fullDialog = api.doRpcCall(fullRequest);
+                } catch (RpcException e) {
+                    System.err.println(e.getErrorTag() + " " + e.getErrorCode());
+                } catch (TimeoutException | IOException e) {
+                    System.err.println(e.getMessage());
+                }
+            } else {
+                TLRequestMessagesGetFullChat fullRequest = SetTLObjectsMethods.getFullChatRequestSet(peerId, chatsHashMap);
+                try {
+                    fullDialog = api.doRpcCall(fullRequest);
+                } catch (RpcException e) {
+                    System.err.println(e.getErrorTag() + " " + e.getErrorCode());
+                } catch (TimeoutException | IOException e) {
+                    System.err.println(e.getMessage());
+                }
+            }
+        } else if (peer instanceof TLPeerChannel){
+            TLRequestChannelsGetFullChannel fullRequest = SetTLObjectsMethods.getFullChannelRequestSet(peerId, chatsHashMap);
+            try {
+                fullDialog = api.doRpcCall(fullRequest);
+            } catch (RpcException e) {
+                System.err.println(e.getErrorTag() + " " + e.getErrorCode());
+            } catch (TimeoutException | IOException e) {
+                System.err.println(e.getMessage());
+            }
+        } else if (peer instanceof TLPeerUser){
+            TLRequestUsersGetFullUser fullRequest = SetTLObjectsMethods.getFullUserRequestSet(peerId, usersHashMap);
+            try {
+                fullDialog = api.doRpcCall(fullRequest);
+            } catch (RpcException e) {
+                System.err.println(e.getErrorTag() + " " + e.getErrorCode());
+            } catch (TimeoutException | IOException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+        return fullDialog;
+    }
+
+
 
 }

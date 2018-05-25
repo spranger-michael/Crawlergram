@@ -5,8 +5,10 @@
  */
 
 
+import com.mongodb.client.MongoCollection;
 import crawler.db.mongo.MongoDBStorage;
 import crawler.implementation.structures.MessageDoc;
+import org.bson.Document;
 
 import java.util.*;
 
@@ -22,10 +24,29 @@ public class testdb {
         // User "telegramJ" - db.createUser({user: "telegramJ", pwd: "cart", roles: [{ role: "readWrite", db: "telegram" }]})
         MongoDBStorage mongo = new MongoDBStorage("telegramJ", "telegram", "cart", "localhost", 27017, "fs");
 
-        HashMap<Integer, List<MessageDoc>> hm = mongo.dbReadMessageDocsHashMap();
+        //HashMap<Integer, List<MessageDoc>> hm = mongo.dbReadMessageDocsHashMap();
+
+        List<Document> dl = new ArrayList<>();
+        dl.add(new Document("s", 1).append("1", "s"));
+        dl.add(new Document("a", 2).append("2","a"));
+        dl.add(new Document("q", 3).append("3","q"));
+
+        mongo.setTarget("testColl");
+
+        Document doc = new Document("_id", "MongoDB")
+                .append("type", "database")
+                .append("count", 1)
+                .append("versions", Arrays.asList("v3.2", "v3.0", "v2.6"))
+                .append("info", new Document("x", 203).append("y", 102))
+                .append("arr", Arrays.asList(new Document("x", 200).append("y", 100), new Document("x", 201).append("y", 101), new Document("x", 202).append("y", 102)))
+                .append("afl", dl);
+
+        mongo.write(doc);
+
+        mongo.dropTarget("testColl");
+        mongo.dropDatabase();
 
         /*
-        MongoCollection<Document> collection = database.getCollection("testColl");
         collection.createIndex(Indexes.ascending("name"));
 
         MongoIterable<String> collections = database.listCollectionNames();
