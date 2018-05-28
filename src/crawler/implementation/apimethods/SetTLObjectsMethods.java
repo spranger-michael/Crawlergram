@@ -478,7 +478,9 @@ public class SetTLObjectsMethods {
      * @param chatsHashMap chats
      * @param filterType 0 - recent, 1 - admins, 2 - kicked, 3 - bots, default - recent
      */
-    public static TLRequestChannelsGetParticipants getRecentChannelParticipantsRequestSet(int peerId, HashMap<Integer, TLAbsChat> chatsHashMap, int filterType){
+    public static TLRequestChannelsGetParticipants getChannelParticipantsRequestSet(int peerId,
+                                                                                    HashMap<Integer, TLAbsChat> chatsHashMap,
+                                                                                    int filterType, int offset){
         TLAbsChannelParticipantsFilter filter;
         switch (filterType){
             case 0: filter = new TLChannelParticipantsFilterRecent(); break;
@@ -487,12 +489,12 @@ public class SetTLObjectsMethods {
             case 3: filter = new TLChannelParticipantsFilterBots(); break;
             default: filter = new TLChannelParticipantsFilterRecent(); break;
         }
-        TLRequestChannelsGetParticipants getPartic = new TLRequestChannelsGetParticipants();
-        getPartic.setChannel(absInputChannelSet(peerId, chatsHashMap));
-        getPartic.setOffset(0);
-        getPartic.setLimit(1000);
-        getPartic.setFilter(filter);
-        return getPartic;
+        TLRequestChannelsGetParticipants getParticipants = new TLRequestChannelsGetParticipants();
+        getParticipants.setChannel(absInputChannelSet(peerId, chatsHashMap));
+        getParticipants.setOffset(offset);
+        getParticipants.setLimit(200); // returns 200 users at max
+        getParticipants.setFilter(filter);
+        return getParticipants;
     }
 
 }

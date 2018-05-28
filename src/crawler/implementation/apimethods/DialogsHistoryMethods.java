@@ -7,15 +7,15 @@
 package crawler.implementation.apimethods;
 
 import crawler.implementation.structures.DataStructuresMethods;
+import org.telegram.api.channel.TLChannelParticipants;
+import org.telegram.api.channel.participants.*;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.chat.TLAbsChatFull;
 import org.telegram.api.chat.TLChat;
 import org.telegram.api.chat.TLChatFull;
-import org.telegram.api.chat.channel.TLChannel;
 import org.telegram.api.chat.channel.TLChannelFull;
 import org.telegram.api.chat.participant.chatparticipants.TLAbsChatParticipants;
 import org.telegram.api.chat.participant.chatparticipants.TLChatParticipants;
-import org.telegram.api.chat.participant.chatparticipants.TLChatParticipantsForbidden;
 import org.telegram.api.dialog.TLDialog;
 import org.telegram.api.engine.RpcException;
 import org.telegram.api.engine.TelegramApi;
@@ -45,7 +45,6 @@ import org.telegram.tl.TLObject;
 import org.telegram.tl.TLVector;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -310,10 +309,10 @@ public class DialogsHistoryMethods {
         // sleep time (Telegram can send FLOOD WAIT ERROR if the requests are done too often)
         int sleepTime = 1;
         if ((limit > 1000) || (limit == 0)){sleepTime = 100;}
-        TLVector<TLAbsMessage> messages = new TLVector<>();
+        TLVector<TLAbsMessage> messages = initMessages(dialog, messagesHashMap);
         Set<Integer> messageIdSet = new HashSet<>();
-        Integer offId = initOffsetsId(dialog, messagesHashMap); // offset id
-        Integer offDate = initOffsetsDate(dialog, messagesHashMap); // offset date
+        Integer offId = initOffsetsId(messages); // offset id
+        Integer offDate = initOffsetsDate(messages); // offset date
         int receivedMsgs = 0; // received messages
         int iter = 0;
         while (receivedMessagesCheck(receivedMsgs, limit)) {
@@ -425,37 +424,51 @@ public class DialogsHistoryMethods {
     }
 
     /**
-     * Initiates offset id
+     * Initiates messages array with top message
      * @param dialog dialog
      * @param messagesHashMap top messages
      */
-    private static int initOffsetsId(TLDialog dialog, HashMap<Integer, TLAbsMessage> messagesHashMap){
+    private static TLVector<TLAbsMessage> initMessages(TLDialog dialog, HashMap<Integer, TLAbsMessage> messagesHashMap){
+        TLVector<TLAbsMessage> messages = new TLVector<>();
         TLAbsMessage msg = messagesHashMap.get(dialog.getPeer().getId());
-        int offId;
         if (msg instanceof TLMessage){
-            offId = ((TLMessage) msg).getId();
+            messages.add(msg);
         } else if (msg instanceof TLMessageService){
-            offId = ((TLMessageService) msg).getId();
-        } else {
-            offId = 0;
+            messages.add(msg);
+        }
+        return messages;
+    }
+
+    /**
+     * Initiates offset id
+     * @param messages array with top message or empty one
+     */
+    private static int initOffsetsId(TLVector<TLAbsMessage> messages){
+        int offId = 0;
+        if (!messages.isEmpty()) {
+            TLAbsMessage msg = messages.get(0);
+            if (msg instanceof TLMessage) {
+                offId = ((TLMessage) msg).getId();
+            } else if (msg instanceof TLMessageService) {
+                offId = ((TLMessageService) msg).getId();
+            }
         }
         return offId;
     }
 
     /**
      * Initiates offset date
-     * @param dialog dialog
-     * @param messagesHashMap top messages
+     * @param messages array with top message or empty one
      */
-    private static int initOffsetsDate(TLDialog dialog, HashMap<Integer, TLAbsMessage> messagesHashMap){
-        TLAbsMessage msg = messagesHashMap.get(dialog.getPeer().getId());
-        int offDate;
-        if (msg instanceof TLMessage){
-            offDate = ((TLMessage) msg).getDate();
-        } else if (msg instanceof TLMessageService){
-            offDate = ((TLMessageService) msg).getDate();
-        } else {
-            offDate = 0;
+    private static int initOffsetsDate(TLVector<TLAbsMessage> messages){
+        int offDate = 0;
+        if (!messages.isEmpty()){
+            TLAbsMessage msg = messages.get(0);
+            if (msg instanceof TLMessage){
+                offDate = ((TLMessage) msg).getDate();
+            } else if (msg instanceof TLMessageService){
+                offDate = ((TLMessageService) msg).getDate();
+            }
         }
         return offDate;
     }
@@ -553,12 +566,15 @@ public class DialogsHistoryMethods {
 
     /**
      * Gets participants from full chats (all), channels (recent ones) and user
-     * @param full
-     * @return
+     * @param api api
+     * @param full full chat/user/channel
+     * @param chatsHashMap chats
+     * @param usersHashMap users
+     * @param filter filter for participants retrieval: 0 - recent, 1 - admins, 2 - kicked, 3 - bots, default - recent
      */
-    public static TLObject getParticipants(TelegramApi api, TLObject full, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap, int filter) {
+    public static TLObject getParticipants(TelegramApi api, TLObject full, HashMap<Integer, TLAbsChat> chatsHashMap,
+                                           HashMap<Integer, TLAbsUser> usersHashMap, int filter) {
         TLObject participants = null;
-
         if (full instanceof TLMessagesChatFull) {
             TLAbsChatFull absChatFull = ((TLMessagesChatFull) full).getFullChat();
             // update the hasmaps
@@ -566,25 +582,113 @@ public class DialogsHistoryMethods {
             DataStructuresMethods.insertIntoUsersHashMap(usersHashMap, ((TLMessagesChatFull) full).getUsers());
             //check if chat full or channel full
             if (absChatFull instanceof TLChannelFull) {
-                TLRequestChannelsGetParticipants getPartic = SetTLObjectsMethods.getRecentChannelParticipantsRequestSet(absChatFull.getId(), chatsHashMap, filter);
-                try {
-                    participants = api.doRpcCall(getPartic);
-                } catch (RpcException e) {
-                    System.err.println(e.getErrorTag() + " " + e.getErrorCode());
-                } catch (TimeoutException | IOException e) {
-                    System.err.println(e.getMessage());
-                }
+                participants = getChannelParticipants(api, (TLChannelFull) absChatFull, chatsHashMap, filter);
             } else if (absChatFull instanceof TLChatFull) {
                 TLAbsChatParticipants p = ((TLChatFull) absChatFull).getParticipants();
                 if (p instanceof TLChatParticipants) {
                     participants = p;
                 }
             }
-
         } else if (full instanceof TLUserFull) {
-            participants = full; // redundancy for clearance
+            participants = full;
         } else {}
         return participants;
+    }
+
+    /**
+     * Loop for channel participants (without loop retrieves no more than 200)
+     * @param api api
+     * @param channelFull full channel
+     * @param chatsHashMap chats map
+     * @param filter filter for participants retrieval: 0 - recent, 1 - admins, 2 - kicked, 3 - bots, default - recent
+     */
+    private static TLChannelParticipants getChannelParticipants(TelegramApi api ,TLChannelFull channelFull,
+                                                                HashMap<Integer, TLAbsChat> chatsHashMap, int filter){
+        TLChannelParticipants channelParticipants = new TLChannelParticipants();
+        TLVector<TLAbsUser> users = new TLVector<>();
+        TLVector<TLAbsChannelParticipant> participants = new TLVector<>();
+        Set<Integer> participantsIdSet = new HashSet<>();
+        int count = 0;
+        if (channelFull != null){
+            count = channelFull.getParticipantsCount();
+        }
+        int offset = 0;
+        int retrieved = 0;
+        try {
+            while (retrieved < count){
+                // retrieve participants
+                TLRequestChannelsGetParticipants getParticipants = SetTLObjectsMethods.getChannelParticipantsRequestSet(channelFull.getId(), chatsHashMap, filter, offset);
+                TLChannelParticipants temp = api.doRpcCall(getParticipants);
+                // process them
+                checkAndUpdateParticipants(temp, participantsIdSet, users, participants);
+                retrieved = users.size();
+                offset = users.size();
+                //TODO avoid FLOOD WAIT
+                try {Thread.sleep(100);} catch (InterruptedException e) {}
+            }
+        } catch (RpcException e) {
+            System.err.println(e.getErrorTag() + " " + e.getErrorCode());
+        } catch (TimeoutException | IOException e) {
+            System.err.println(e.getMessage());
+        }
+        if (count > 0) {
+            channelParticipants.setCount(users.size());
+            channelParticipants.setUsers(users);
+            channelParticipants.setParticipants(participants);
+        }
+        return channelParticipants;
+    }
+
+    /**
+     * checks if participant is already added
+     * @param temp
+     * @param participantsIdSet
+     * @param users
+     * @param participants
+     */
+    private static void checkAndUpdateParticipants(TLChannelParticipants temp, Set<Integer> participantsIdSet,
+                                                   TLVector<TLAbsUser> users, TLVector<TLAbsChannelParticipant> participants){
+        TLVector<TLAbsUser> tempUsers = temp.getUsers();
+        TLVector<TLAbsChannelParticipant> tempParticipants = temp.getParticipants();
+        for (int i = 0; i < tempUsers.size(); i++){
+            int curId = tempUsers.get(i).getId();
+            if (!participantsIdSet.contains(curId)){
+                participantsIdSet.add(curId);
+                users.add(tempUsers.get(i));
+                participants.add(getParticipantFromListById(tempParticipants, curId));
+            }
+        }
+    }
+
+    /**
+     * gets participant by id
+     * @param participants
+     * @param id
+     * @return
+     */
+    private static TLAbsChannelParticipant getParticipantFromListById(TLVector<TLAbsChannelParticipant> participants, int id){
+        TLAbsChannelParticipant par = null;
+        for(TLAbsChannelParticipant participant: participants){
+            int parId = 0;
+            if (participant instanceof TLChannelParticipant){
+                parId = ((TLChannelParticipant) participant).getUserId();
+            } else if (participant instanceof TLChannelParticipantCreator){
+                parId = ((TLChannelParticipantCreator) participant).getUserId();
+            } else if (participant instanceof TLChannelParticipantEditor){
+                parId = ((TLChannelParticipantEditor) participant).getUserId();
+            } else if (participant instanceof TLChannelParticipantKicked){
+                parId = ((TLChannelParticipantKicked) participant).getUserId();
+            } else if (participant instanceof TLChannelParticipantModerator){
+                parId = ((TLChannelParticipantModerator) participant).getUserId();
+            } else if (participant instanceof TLChannelParticipantSelf){
+                parId = ((TLChannelParticipantSelf) participant).getUserId();
+            }
+            if (id == parId){
+                par = participant;
+                break;
+            }
+        }
+        return par;
     }
 
 }
