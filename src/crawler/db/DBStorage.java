@@ -16,6 +16,7 @@ import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.message.TLAbsMessage;
 import org.telegram.api.message.media.TLAbsMessageMedia;
 import org.telegram.api.user.TLAbsUser;
+import org.telegram.tl.TLObject;
 import org.telegram.tl.TLVector;
 
 import java.util.HashMap;
@@ -40,9 +41,17 @@ public interface DBStorage {
     void dropDatabase();
 
     /**
-     * Writes object to DB
+     * atomic write operation
      */
     void write(Object obj);
+
+    /**
+     * writes full dialog to db
+     * @param dial
+     * @param chatsHashMap
+     * @param usersHashMap
+     */
+    void writeFullDialog(TLObject dial, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap);
 
     /**
      * Writes message from dialogs to DB (each dialog to a single collection)
@@ -56,23 +65,7 @@ public interface DBStorage {
      */
     void writeTLAbsMessages(TLVector<TLAbsMessage> absMessages);
 
-    /**
-     * Writes media to DB
-     * @param absMedia
-     */
-    void writeTLAbsMessageMedia(TLAbsMessageMedia absMedia);
 
-    /**
-     * Writes users to DB
-     * @param usersHashMap
-     */
-    void writeTLAbsUsers(HashMap<Integer, TLAbsUser> usersHashMap);
-
-    /**
-     * Writes chats to DB
-     * @param chatsHashMap
-     */
-    void writeTLAbsChats(HashMap<Integer, TLAbsChat> chatsHashMap);
 
 
 

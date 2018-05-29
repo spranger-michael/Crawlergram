@@ -15,6 +15,7 @@ import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
+import crawler.db.Const;
 import crawler.db.DBStorage;
 import crawler.implementation.structures.MessageDoc;
 import org.bson.Document;
@@ -26,6 +27,9 @@ import java.util.Set;
 
 import com.mongodb.client.model.Filters;
 import org.telegram.api.chat.TLAbsChat;
+import org.telegram.api.chat.TLAbsChatFull;
+import org.telegram.api.chat.TLChatFull;
+import org.telegram.api.chat.channel.TLChannelFull;
 import org.telegram.api.document.TLAbsDocument;
 import org.telegram.api.document.TLDocument;
 import org.telegram.api.document.attribute.*;
@@ -35,6 +39,7 @@ import org.telegram.api.geo.point.TLAbsGeoPoint;
 import org.telegram.api.geo.point.TLGeoPoint;
 import org.telegram.api.message.*;
 import org.telegram.api.message.media.*;
+import org.telegram.api.messages.TLMessagesChatFull;
 import org.telegram.api.peer.TLAbsPeer;
 import org.telegram.api.peer.TLPeerChannel;
 import org.telegram.api.peer.TLPeerChat;
@@ -43,11 +48,14 @@ import org.telegram.api.photo.TLAbsPhoto;
 import org.telegram.api.photo.TLPhoto;
 import org.telegram.api.photo.TLPhotoEmpty;
 import org.telegram.api.photo.size.TLAbsPhotoSize;
-import org.telegram.api.photo.size.TLPhotoCachedSize;
 import org.telegram.api.photo.size.TLPhotoSize;
 import org.telegram.api.user.TLAbsUser;
+import org.telegram.api.user.TLUser;
+import org.telegram.api.user.TLUserEmpty;
+import org.telegram.api.user.TLUserFull;
 import org.telegram.api.webpage.TLAbsWebPage;
 import org.telegram.api.webpage.TLWebPage;
+import org.telegram.tl.TLObject;
 import org.telegram.tl.TLVector;
 
 /**
@@ -221,14 +229,85 @@ public class MongoDBStorage implements DBStorage {
         }
     }
 
+    /**
+     * writes object to db
+     * @param obj
+     */
     @Override
-    public void write(Object obj) {
-        try{
-            collection.insertOne((Document) obj);
-        } catch (MongoException e){
-            System.err.println(e.getCode() + " " + e.getMessage());
+    public void write(Object obj){
+        collection.insertOne((Document) obj);
+    }
+
+    /**
+     * Writes full dialog to db
+     * @param dial object with dialog (chat/channel/user)
+     * @param chatsHashMap prevents unnecessary downloading by getting data from HashMap
+     * @param usersHashMap prevents unnecessary downloading by getting data from HashMap
+     */
+    @Override
+    public void writeFullDialog(TLObject dial, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap){
+        // set target of writing
+        this.setTarget(Const.DIALOGS);
+        // write it
+        if (dial instanceof TLMessagesChatFull) {
+            TLAbsChatFull absChatFull = ((TLMessagesChatFull) dial).getFullChat();
+            //check if chat full or channel full
+            if (absChatFull instanceof TLChannelFull) {
+                //TODO
+            } else if (absChatFull instanceof TLChatFull) {
+                //TODO
+            }
+        } else if (dial instanceof TLUserFull) {
+            this.write(tlUserFullToDocument((TLUserFull) dial));
         }
     }
+
+    /**
+     * Converts user full to document
+     * @param uf user full
+     */
+    private static Document tlUserFullToDocument(TLUserFull uf){
+        TLAbsUser au = uf.getUser();
+        return new Document("_id",au.getId())
+                .append("class", "UserFull")
+                .append("about", uf.getAbout())
+                .append("commonChatsCount", uf.getCommonChatsCount())
+                .append("flags",uf.getFlags())
+                .append("photo", tlAbsPhotoToDocument(uf.getProfilePhoto()))
+                .append("user", tlAbsUserToDocument(au));
+    }
+
+    /**
+     * converts abstract user to document
+     * @param au abstract user
+     */
+    private static Document tlAbsUserToDocument(TLAbsUser au){
+        if (au instanceof TLUser){
+            TLUser u = (TLUser) au;
+            return new Document("class", "User")
+                    .append("_id", u.getId())
+                    .append("accessHash", u.getAccessHash())
+                    .append("firstName",u.getFirstName())
+                    .append("lastName",u.getLastName())
+                    .append("userName",u.getUserName())
+                    .append("flags",u.getFlags())
+                    .append("langCode",u.getLangCode())
+                    .append("phone",u.getPhone())
+                    .append("botInfoVersion",u.getBotInfoVersion())
+                    .append("botInlinePlaceholder",u.getBotInlinePlaceholder());
+        } else if (au instanceof TLUserEmpty){
+            TLUserEmpty u = (TLUserEmpty) au;
+            return new Document("class", "UserEmpty").append("_id", u.getId());
+        } else {
+            return null;
+        }
+    }
+
+
+
+
+
+
 
     /**
      * Write a single message to DB
@@ -263,18 +342,6 @@ public class MongoDBStorage implements DBStorage {
         } catch (MongoException e) {
             System.err.println(e.getCode() + " " + e.getMessage());
         }
-    }
-
-    @Override
-    public void writeTLAbsMessageMedia(TLAbsMessageMedia absMedia){
-    }
-
-    @Override
-    public void writeTLAbsUsers(HashMap<Integer, TLAbsUser> usersHashMap){
-    }
-
-    @Override
-    public void writeTLAbsChats(HashMap<Integer, TLAbsChat> chatsHashMap){
     }
 
     /**
@@ -480,75 +547,41 @@ public class MongoDBStorage implements DBStorage {
      */
     private static Document tlAbsPhotoToDocument(TLAbsPhoto ap){
         if (ap instanceof TLPhoto){
-            return new Document("classId", ap.getClassId())
+            return new Document("class", "Photo")
                     .append("id", ((TLPhoto) ap).getId())
                     .append("accessHash", ((TLPhoto) ap).getAccessHash())
                     .append("date", ((TLPhoto) ap).getDate())
                     .append("location", getLargestPhotoLocation(((TLPhoto) ap).getSizes()));
         } else if (ap instanceof TLPhotoEmpty){
-            return new Document("classId", ap.getClassId())
+            return new Document("class", "PhotoEmpty")
                     .append("id", ((TLPhotoEmpty) ap).getId());
         } else {
-            return new Document("classId", ap.getClassId());
+            return new Document("class", "Unknown");
         }
     }
 
     /**
-     * gets the location of the largest accessable photo
+     * gets the location of the largest (and last one in the list) accessible photo
      * @param apss abs photo size
      * @return doc
      */
     private static Document getLargestPhotoLocation(TLVector<TLAbsPhotoSize> apss){
-        //get the areas of photos, and the largest area
-        List<Integer> areas = calcAreas(apss);
-        int idx = 0;
-        for (TLAbsPhotoSize aps: apss){
-            idx = getLargestAreaIdx(areas);
-            if (checkLocationAvailability(apss.get(idx))){
-                TLPhotoSize apsc = (TLPhotoSize) apss.get(idx);
-                return new Document("classId", apsc.getClassId())
-                        .append("size", apsc.getSize())
-                        .append("type", apsc.getType())
-                        .append("location", tlFileLocationToDocument((TLFileLocation) apsc.getLocation()));
-            } else {
-                areas.set(idx, 0);
+        // getting the last and largest TLPhotoSize
+        Document doc = null;
+        TLPhotoSize aps = null;
+        TLFileLocation psl = null;
+        for (int i = apss.size()-1; i >= 0; i--){
+            if (sizeAvailable(apss.get(i))){
+                aps = (TLPhotoSize) apss.get(i);
+                psl = (TLFileLocation) aps.getLocation();
+                doc = new Document("class", "PhotoSize")
+                        .append("size", aps.getSize())
+                        .append("type", aps.getType())
+                        .append("location", tlFileLocationToDocument(psl));
+                break;
             }
         }
-        return null;
-    }
-
-    /**
-     * calculates the areas of photos
-     * @param apss
-     * @return
-     */
-    private static List<Integer> calcAreas(TLVector<TLAbsPhotoSize> apss){
-        List<Integer> areas = new ArrayList<>();
-        for (TLAbsPhotoSize aps: apss){
-            if (aps instanceof TLPhotoSize){
-                areas.add(((TLPhotoSize) aps).getH()*((TLPhotoSize) aps).getW());
-            } else {
-                areas.add(0);
-            }
-        }
-        return areas;
-    }
-
-    /**
-     * gets the index of largest photo
-     * @param areas
-     * @return
-     */
-    private static int getLargestAreaIdx(List<Integer> areas){
-        int idx = 0;
-        int area = 0;
-        for (int i = 0; i < areas.size(); i++){
-            if (area < areas.get(i)){
-                area = areas.get(i);
-                idx = i;
-            }
-        }
-        return idx;
+        return doc;
     }
 
     /**
@@ -556,7 +589,7 @@ public class MongoDBStorage implements DBStorage {
      * @param aps
      * @return
      */
-    private static boolean checkLocationAvailability(TLAbsPhotoSize aps){
+    private static boolean sizeAvailable(TLAbsPhotoSize aps){
         boolean f = false;
         if (aps instanceof TLPhotoSize){
             if (((TLPhotoSize) aps).getLocation() instanceof TLFileLocation){
@@ -573,7 +606,7 @@ public class MongoDBStorage implements DBStorage {
      * @return doc
      */
     private static Document tlFileLocationToDocument(TLFileLocation fl){
-        return new Document("classId", fl.getClassId())
+        return new Document("class", "FileLocation")
                 .append("size", fl.getDcId())
                 .append("localId", fl.getLocalId())
                 .append("volumeId", fl.getVolumeId())

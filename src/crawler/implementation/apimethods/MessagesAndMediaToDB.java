@@ -38,29 +38,29 @@ public class MessagesAndMediaToDB {
                                             HashMap<Integer, TLAbsMessage> messagesHashMap,
                                             int msgLimit, int parLimit, int filter) {
         for (TLDialog dialog : dialogs) {
+            //reads full dialog info
             TLObject fullDialog = DialogsHistoryMethods.getFullDialog(api, dialog, chatsHashMap, usersHashMap);
-            // writes messages of the dialog to "messages + [dialog_id]" table/collection/etc.
-            dbStorage.setTarget(Const.MSG_DIAL_PREF + dialog.getPeer().getId());
+            //writes full dialog info
+            dbStorage.writeFullDialog(fullDialog, chatsHashMap, usersHashMap);
 
-            System.out.println("full " + fullDialog.getClassId());
-
-
+            //reads participants
             TLObject participants = DialogsHistoryMethods.getParticipants(api, fullDialog, chatsHashMap, usersHashMap, parLimit, filter);
-            System.out.println("particn" + participants.getClassId());
+            // writes participants of the dialog to "messages + [dialog_id]" table/collection/etc.
+            dbStorage.setTarget(Const.PAR_DIAL_PREF + dialog.getPeer().getId());
 
             //reads the messages
-
-
             TLVector<TLAbsMessage> absMessages = DialogsHistoryMethods.getWholeMessagesHistory(api, dialog, chatsHashMap, usersHashMap, messagesHashMap, msgLimit);
-            System.out.println("msg " + absMessages.size());
+            // writes messages of the dialog to "messages + [dialog_id]" table/collection/etc.
+            dbStorage.setTarget(Const.MSG_DIAL_PREF + dialog.getPeer().getId());
 
             /*
             // write messages
             dbStorage.writeTLAbsMessages(absMessages);
             System.err.println(dialog.getPeer().getId()+ " "+ absMessages.size());
+            */
+
             // sleep between transmissions to avoid flood wait
             try {Thread.sleep(1000);} catch (InterruptedException ignored) {}
-            */
         }
     }
 

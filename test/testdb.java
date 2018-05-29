@@ -43,8 +43,8 @@ public class testdb {
 
         mongo.write(doc);
 
-        mongo.dropTarget("testColl");
-        mongo.dropDatabase();
+        //mongo.dropTarget("testColl");
+        //mongo.dropDatabase();
 
         /*
         collection.createIndex(Indexes.ascending("name"));
