@@ -492,7 +492,7 @@ public class SetTLObjectsMethods {
         TLRequestChannelsGetParticipants getParticipants = new TLRequestChannelsGetParticipants();
         getParticipants.setChannel(absInputChannelSet(peerId, chatsHashMap));
         getParticipants.setOffset(offset);
-        getParticipants.setLimit(200); // returns 200 users at max
+        getParticipants.setLimit(200); // Telegram returns 200 users at max
         getParticipants.setFilter(filter);
         return getParticipants;
     }

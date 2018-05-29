@@ -80,12 +80,13 @@ public class CrawlerMain {
         ConsoleOutputMethods.testChatsHashMapOutputConsole(chatsHashMap);
         ConsoleOutputMethods.testUsersHashMapOutputConsole(usersHashMap);
 
-        // all dialogs
-        int messagesLimit = 300; // maximum number of retrieved messages from each dialog
+        // parameters
+        int messagesLimit = 300; // maximum number of retrieved messages from each dialog (0 if all)
+        int participantsLimit = 0; // maximum number of retrieved participants from each dialog (0 if all)
         int filter = 0; // participants filter: 0 - recent, 1 - admins, 2 - kicked, 3 - bots, default - recent
 
         //Saves messages and media and outputs messages in console:
-        MessagesAndMediaToDB.saveMessagesOnlyToDB(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, filter);
+        MessagesAndMediaToDB.saveMessagesOnlyToDB(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter);
 
         //mongo.dbWriteMessageDocsHashMap(docsInDialogs);
 

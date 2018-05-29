@@ -27,30 +27,32 @@ public class MessagesAndMediaToDB {
      * @param   dialogs dialogs TLVector
      * @param   chatsHashMap    chats hashmap
      * @param   usersHashMap    users hashmap
-     * @param   limit   maximum number of retrieved messages from each dialog (0 if no limit)
+     * @param   messagesHashMap top messages
+     * @param   msgLimit   maximum number of retrieved messages from each dialog (0 if all )
+     * @param   parLimit   maximum number of retrieved participants from each dialog (0 if all)
+     * @param   filter  participants filter: 0 - recent, 1 - admins, 2 - kicked, 3 - bots, default - recent
      */
-    public static void saveMessagesOnlyToDB(TelegramApi api,
-                                            DBStorage dbStorage,
-                                            TLVector<TLDialog> dialogs,
+    public static void saveMessagesOnlyToDB(TelegramApi api, DBStorage dbStorage, TLVector<TLDialog> dialogs,
                                             HashMap<Integer, TLAbsChat> chatsHashMap,
                                             HashMap<Integer, TLAbsUser> usersHashMap,
                                             HashMap<Integer, TLAbsMessage> messagesHashMap,
-                                            int limit,
-                                            int filter) {
+                                            int msgLimit, int parLimit, int filter) {
         for (TLDialog dialog : dialogs) {
-            System.out.println("full");
             TLObject fullDialog = DialogsHistoryMethods.getFullDialog(api, dialog, chatsHashMap, usersHashMap);
             // writes messages of the dialog to "messages + [dialog_id]" table/collection/etc.
             dbStorage.setTarget(Const.MSG_DIAL_PREF + dialog.getPeer().getId());
 
-            System.out.println("partic");
-            TLObject participants = DialogsHistoryMethods.getParticipants(api, fullDialog, chatsHashMap, usersHashMap, filter);
+            System.out.println("full " + fullDialog.getClassId());
+
+
+            TLObject participants = DialogsHistoryMethods.getParticipants(api, fullDialog, chatsHashMap, usersHashMap, parLimit, filter);
+            System.out.println("particn" + participants.getClassId());
 
             //reads the messages
 
-            System.out.println("msg");
-            TLVector<TLAbsMessage> absMessages = DialogsHistoryMethods.getWholeMessagesHistory(api, dialog, chatsHashMap, usersHashMap, messagesHashMap, limit);
-            System.out.println();
+
+            TLVector<TLAbsMessage> absMessages = DialogsHistoryMethods.getWholeMessagesHistory(api, dialog, chatsHashMap, usersHashMap, messagesHashMap, msgLimit);
+            System.out.println("msg " + absMessages.size());
 
             /*
             // write messages

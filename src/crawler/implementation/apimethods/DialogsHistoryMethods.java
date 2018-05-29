@@ -41,6 +41,7 @@ import org.telegram.api.peer.TLPeerChat;
 import org.telegram.api.peer.TLPeerUser;
 import org.telegram.api.user.TLAbsUser;
 import org.telegram.api.user.TLUserFull;
+import org.telegram.tl.TLMethod;
 import org.telegram.tl.TLObject;
 import org.telegram.tl.TLVector;
 
@@ -307,8 +308,6 @@ public class DialogsHistoryMethods {
                                                                  HashMap<Integer, TLAbsMessage> messagesHashMap,
                                                                  int limit) {
         // sleep time (Telegram can send FLOOD WAIT ERROR if the requests are done too often)
-        int sleepTime = 1;
-        if ((limit > 1000) || (limit == 0)){sleepTime = 100;}
         TLVector<TLAbsMessage> messages = initMessages(dialog, messagesHashMap);
         Set<Integer> messageIdSet = new HashSet<>();
         Integer offId = initOffsetsId(messages); // offset id
@@ -318,7 +317,7 @@ public class DialogsHistoryMethods {
         while (receivedMessagesCheck(receivedMsgs, limit)) {
             TLRequestMessagesGetHistory getHistory = SetTLObjectsMethods.getHistoryRequestSet(dialog, chatsHashMap, usersHashMap, 100, offDate, offId);
             // try to get messages (in recusrsion), use 0 as initial depth
-            TLAbsMessages absMessages = sleepAndRequestMessages(api, getHistory, sleepTime, 0);
+            TLAbsMessages absMessages = (TLAbsMessages) sleepAndRequest(api, getHistory, 100, 0);
             // if returns no messages -> break the loop
             if (absMessages.getMessages().isEmpty() || absMessages == null || absMessages.getMessages() == null) { break; }
             // update known users and chats hashmaps
@@ -335,15 +334,8 @@ public class DialogsHistoryMethods {
             offId = resetOffsetsId(messages.get(messages.size() - 1));
             offDate = resetOffsetsDate(messages.get(messages.size() - 1));
 
-            // sleep once per 1000 messages for 1 sec
-            if (iter >=10){
-                try {
-                    Thread.sleep(1000);
-                    iter = 0;
-                } catch (InterruptedException e) {
-                }
-            } else {iter++;}
-
+            // sleep once per 10 iterations for 1 sec
+            iter = sleepOncePerNIters(iter, 10);
         }
         if ((messages.size() > limit) && (limit != 0)){
             int delta = messages.size() - limit;
@@ -361,23 +353,24 @@ public class DialogsHistoryMethods {
      * @see TelegramApi
      * @see TLRequestMessagesGetHistory
      */
-    private static TLAbsMessages sleepAndRequestMessages(TelegramApi api,
-                                                         TLRequestMessagesGetHistory getHistory,
-                                                         int sleepTime, int depth){
+    private static TLObject sleepAndRequest(TelegramApi api,
+                                            TLMethod getHistory,
+                                            int sleepTime, int depth){
         Integer time;
         if ((depth != 0) && (sleepTime < 1000)){
             time = 1000;
         } else {
             time = Integer.valueOf(sleepTime);
         }
-        TLAbsMessages absMessages = null;
+        TLObject tlObject = null;
         // sleep
         try { Thread.sleep(time); } catch (InterruptedException e) { System.err.println("Depth: "+ depth + ", Sleep time: " + time + " can't sleep " + e.getMessage()); }
         // try to get messages, in case of fail fail - try again, but later
         if (depth < 2){
             try {
-                absMessages = api.doRpcCall(getHistory);
+                tlObject = api.doRpcCall(getHistory);
             } catch (RpcException e) {
+                System.err.println("RPC: "+e.getErrorTag()+ " " + e.getErrorCode());
                 int timeSleep = time;
                 if (e.getErrorTag().startsWith("FLOOD_WAIT_")){
                     try {
@@ -385,17 +378,26 @@ public class DialogsHistoryMethods {
                         timeSleep = Integer.valueOf(timeSleepString)*1000;
                     } catch (Error er){}
                 }
-                System.err.println("RPC: "+e.getErrorTag()+ " " + e.getErrorCode());
                 System.err.println("Depth: "+ depth + ", Sleep time: " + timeSleep + " " + e.getErrorTag() + " " + e.getErrorCode());
-                absMessages = sleepAndRequestMessages(api, getHistory, timeSleep, ++depth);
+                tlObject = sleepAndRequest(api, getHistory, timeSleep, ++depth);
 
             } catch (TimeoutException | IOException e) {
                 System.err.println("TIMEOUT/IEO : "+ e.getMessage());
                 System.err.println("Depth: "+ depth + ", Sleep time: " + time*10 + " " + e.getMessage());
-                absMessages = sleepAndRequestMessages(api, getHistory, time*10, ++depth);
+                tlObject = sleepAndRequest(api, getHistory, time*10, ++depth);
             }
         }
-        return absMessages;
+        return tlObject;
+    }
+
+    private static int sleepOncePerNIters(int iter, int n){
+        if (iter >= n){
+            try {
+                iter = 0;
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {}
+        } else {iter++;}
+        return iter;
     }
 
     /**
@@ -521,7 +523,6 @@ public class DialogsHistoryMethods {
         TLAbsPeer peer = dialog.getPeer();
         int peerId = peer.getId();
         if (peer instanceof TLPeerChat){
-            //TODO Doesn't work, the problem may be in api
             TLAbsChat chat = chatsHashMap.get(peer.getId());
             if ((chat instanceof TLChat) && ((TLChat) chat).isMigratedTo()){
                 TLRequestChannelsGetFullChannel fullRequest = SetTLObjectsMethods.getFullChannelRequestSet(((TLChat) chat).getMigratedTo().getChannelId(), chatsHashMap);
@@ -570,10 +571,11 @@ public class DialogsHistoryMethods {
      * @param full full chat/user/channel
      * @param chatsHashMap chats
      * @param usersHashMap users
+     * @param limit max retrieved participants
      * @param filter filter for participants retrieval: 0 - recent, 1 - admins, 2 - kicked, 3 - bots, default - recent
      */
     public static TLObject getParticipants(TelegramApi api, TLObject full, HashMap<Integer, TLAbsChat> chatsHashMap,
-                                           HashMap<Integer, TLAbsUser> usersHashMap, int filter) {
+                                           HashMap<Integer, TLAbsUser> usersHashMap, int limit, int filter) {
         TLObject participants = null;
         if (full instanceof TLMessagesChatFull) {
             TLAbsChatFull absChatFull = ((TLMessagesChatFull) full).getFullChat();
@@ -582,7 +584,7 @@ public class DialogsHistoryMethods {
             DataStructuresMethods.insertIntoUsersHashMap(usersHashMap, ((TLMessagesChatFull) full).getUsers());
             //check if chat full or channel full
             if (absChatFull instanceof TLChannelFull) {
-                participants = getChannelParticipants(api, (TLChannelFull) absChatFull, chatsHashMap, filter);
+                participants = getChannelParticipants(api, (TLChannelFull) absChatFull, chatsHashMap, limit, filter);
             } else if (absChatFull instanceof TLChatFull) {
                 TLAbsChatParticipants p = ((TLChatFull) absChatFull).getParticipants();
                 if (p instanceof TLChatParticipants) {
@@ -597,41 +599,47 @@ public class DialogsHistoryMethods {
 
     /**
      * Loop for channel participants (without loop retrieves no more than 200)
-     * @param api api
-     * @param channelFull full channel
+     * @param api          api
+     * @param channelFull  full channel
      * @param chatsHashMap chats map
+     * @param limit max retrieved participants
      * @param filter filter for participants retrieval: 0 - recent, 1 - admins, 2 - kicked, 3 - bots, default - recent
      */
-    private static TLChannelParticipants getChannelParticipants(TelegramApi api ,TLChannelFull channelFull,
-                                                                HashMap<Integer, TLAbsChat> chatsHashMap, int filter){
+    private static TLChannelParticipants getChannelParticipants(TelegramApi api, TLChannelFull channelFull,
+                                                                HashMap<Integer, TLAbsChat> chatsHashMap, int limit, int filter) {
         TLChannelParticipants channelParticipants = new TLChannelParticipants();
         TLVector<TLAbsUser> users = new TLVector<>();
         TLVector<TLAbsChannelParticipant> participants = new TLVector<>();
         Set<Integer> participantsIdSet = new HashSet<>();
         int count = 0;
-        if (channelFull != null){
-            count = channelFull.getParticipantsCount();
+        // if need to retrieve all participants
+        if ((channelFull != null) && (limit == 0)) {
+            limit = channelFull.getParticipantsCount();
         }
         int offset = 0;
         int retrieved = 0;
-        try {
-            while (retrieved < count){
-                // retrieve participants
-                TLRequestChannelsGetParticipants getParticipants = SetTLObjectsMethods.getChannelParticipantsRequestSet(channelFull.getId(), chatsHashMap, filter, offset);
-                TLChannelParticipants temp = api.doRpcCall(getParticipants);
-                // process them
-                checkAndUpdateParticipants(temp, participantsIdSet, users, participants);
-                retrieved = users.size();
-                offset = users.size();
-                //TODO avoid FLOOD WAIT
-                try {Thread.sleep(100);} catch (InterruptedException e) {}
-            }
-        } catch (RpcException e) {
-            System.err.println(e.getErrorTag() + " " + e.getErrorCode());
-        } catch (TimeoutException | IOException e) {
-            System.err.println(e.getMessage());
+        int iter = 0;
+        while (retrieved < limit) {
+            // retrieve participants
+            TLRequestChannelsGetParticipants getParticipants = SetTLObjectsMethods.getChannelParticipantsRequestSet(channelFull.getId(), chatsHashMap, filter, offset);
+            TLChannelParticipants temp = (TLChannelParticipants) sleepAndRequest(api, getParticipants, 100, 0);
+            if (temp == null){break;}
+            // process them
+            checkAndUpdateParticipants(temp, participantsIdSet, users, participants);
+            retrieved = users.size();
+            offset = users.size();
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ignored) {}
+            // sleep once per 10 iterations for 1 sec
+            iter = sleepOncePerNIters(iter, 10);
         }
-        if (count > 0) {
+        if ((users.size() > limit) && (limit != 0)){
+            int delta = users.size() - limit;
+            participants.subList(participants.size()-1-delta,participants.size()-1).clear();
+            users.subList(users.size()-1-delta,users.size()-1).clear();
+        }
+        if (users.size() > 0) {
             channelParticipants.setCount(users.size());
             channelParticipants.setUsers(users);
             channelParticipants.setParticipants(participants);
@@ -641,29 +649,29 @@ public class DialogsHistoryMethods {
 
     /**
      * checks if participant is already added
-     * @param temp
-     * @param participantsIdSet
-     * @param users
-     * @param participants
+     * @param temp participants instance
+     * @param participantsIdSet set of unique ids
+     * @param users users
+     * @param participants correspond to users
      */
     private static void checkAndUpdateParticipants(TLChannelParticipants temp, Set<Integer> participantsIdSet,
                                                    TLVector<TLAbsUser> users, TLVector<TLAbsChannelParticipant> participants){
-        TLVector<TLAbsUser> tempUsers = temp.getUsers();
-        TLVector<TLAbsChannelParticipant> tempParticipants = temp.getParticipants();
-        for (int i = 0; i < tempUsers.size(); i++){
-            int curId = tempUsers.get(i).getId();
-            if (!participantsIdSet.contains(curId)){
-                participantsIdSet.add(curId);
-                users.add(tempUsers.get(i));
-                participants.add(getParticipantFromListById(tempParticipants, curId));
+            TLVector<TLAbsUser> tempUsers = temp.getUsers();
+            TLVector<TLAbsChannelParticipant> tempParticipants = temp.getParticipants();
+            for (int i = 0; i < tempUsers.size(); i++){
+                int curId = tempUsers.get(i).getId();
+                if (!participantsIdSet.contains(curId)){
+                    participantsIdSet.add(curId);
+                    users.add(tempUsers.get(i));
+                    participants.add(getParticipantFromListById(tempParticipants, curId));
+                }
             }
-        }
     }
 
     /**
-     * gets participant by id
-     * @param participants
-     * @param id
+     * gets participant by id (while original users and participants lists are not ordered)
+     * @param participants list
+     * @param id required id
      * @return
      */
     private static TLAbsChannelParticipant getParticipantFromListById(TLVector<TLAbsChannelParticipant> participants, int id){
