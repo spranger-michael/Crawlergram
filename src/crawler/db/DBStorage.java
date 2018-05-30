@@ -41,9 +41,16 @@ public interface DBStorage {
     void dropDatabase();
 
     /**
-     * atomic write operation
+     * write object to db
+     * @param obj
      */
     void write(Object obj);
+
+    /**
+     * upsert object into db
+     * @param obj
+     */
+    void upsert(Object obj);
 
     /**
      * writes full dialog to db
@@ -52,6 +59,18 @@ public interface DBStorage {
      * @param usersHashMap
      */
     void writeFullDialog(TLObject dial, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap);
+
+    /**
+     * writes users hashmap to db
+     * @param usersHashMap
+     */
+    void writeUsersHashMap(HashMap<Integer, TLAbsUser> usersHashMap);
+
+    /**
+     * writes chats hashmap to db
+     * @param chatsHashMap
+     */
+    void writeChatsHashMap(HashMap<Integer, TLAbsChat> chatsHashMap);
 
     /**
      * Writes message from dialogs to DB (each dialog to a single collection)

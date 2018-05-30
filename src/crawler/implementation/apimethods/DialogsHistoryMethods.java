@@ -372,15 +372,17 @@ public class DialogsHistoryMethods {
             } catch (RpcException e) {
                 System.err.println("RPC: "+e.getErrorTag()+ " " + e.getErrorCode());
                 int timeSleep = time;
-                if (e.getErrorTag().startsWith("FLOOD_WAIT_")){
-                    try {
-                        String timeSleepString = e.getErrorTag().replaceAll("FLOOD_WAIT_", "");
-                        timeSleep = Integer.valueOf(timeSleepString)*1000;
-                    } catch (Error er){}
+                if (!(e.getErrorTag().startsWith("CHAT_ADMIN_REQUIRED"))) {
+                    if (e.getErrorTag().startsWith("FLOOD_WAIT_")) {
+                        try {
+                            String timeSleepString = e.getErrorTag().replaceAll("FLOOD_WAIT_", "");
+                            timeSleep = Integer.valueOf(timeSleepString) * 1000;
+                        } catch (Error er) {
+                        }
+                    }
+                    System.err.println("Depth: " + depth + ", Sleep time: " + timeSleep + " " + e.getErrorTag() + " " + e.getErrorCode());
+                    tlObject = sleepAndRequest(api, getHistory, timeSleep, ++depth);
                 }
-                System.err.println("Depth: "+ depth + ", Sleep time: " + timeSleep + " " + e.getErrorTag() + " " + e.getErrorCode());
-                tlObject = sleepAndRequest(api, getHistory, timeSleep, ++depth);
-
             } catch (TimeoutException | IOException e) {
                 System.err.println("TIMEOUT/IEO : "+ e.getMessage());
                 System.err.println("Depth: "+ depth + ", Sleep time: " + time*10 + " " + e.getMessage());

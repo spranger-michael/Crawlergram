@@ -26,17 +26,26 @@ import java.util.List;
 import java.util.Set;
 
 import com.mongodb.client.model.Filters;
-import org.telegram.api.chat.TLAbsChat;
-import org.telegram.api.chat.TLAbsChatFull;
-import org.telegram.api.chat.TLChatFull;
+import org.telegram.api.chat.*;
+import org.telegram.api.chat.channel.TLChannel;
+import org.telegram.api.chat.channel.TLChannelForbidden;
 import org.telegram.api.chat.channel.TLChannelFull;
+import org.telegram.api.chat.invite.*;
+import org.telegram.api.chat.photo.TLAbsChatPhoto;
+import org.telegram.api.chat.photo.TLChatPhoto;
+import org.telegram.api.chat.photo.TLChatPhotoEmpty;
 import org.telegram.api.document.TLAbsDocument;
 import org.telegram.api.document.TLDocument;
 import org.telegram.api.document.attribute.*;
+import org.telegram.api.file.location.TLAbsFileLocation;
 import org.telegram.api.file.location.TLFileLocation;
+import org.telegram.api.file.location.TLFileLocationUnavailable;
 import org.telegram.api.game.TLGame;
 import org.telegram.api.geo.point.TLAbsGeoPoint;
 import org.telegram.api.geo.point.TLGeoPoint;
+import org.telegram.api.input.chat.TLAbsInputChannel;
+import org.telegram.api.input.chat.TLInputChannel;
+import org.telegram.api.input.chat.TLInputChannelEmpty;
 import org.telegram.api.message.*;
 import org.telegram.api.message.media.*;
 import org.telegram.api.messages.TLMessagesChatFull;
@@ -239,6 +248,16 @@ public class MongoDBStorage implements DBStorage {
     }
 
     /**
+     * upsert object into db
+     * @param obj
+     */
+    @Override
+    public void upsert(Object obj) {
+        Document doc = (Document) obj;
+        UpdateResult uRes = collection.updateOne(Filters.eq("_id",doc.get("_id")), new Document("$set",doc), new UpdateOptions().upsert(true));
+    }
+
+    /**
      * Writes full dialog to db
      * @param dial object with dialog (chat/channel/user)
      * @param chatsHashMap prevents unnecessary downloading by getting data from HashMap
@@ -253,13 +272,95 @@ public class MongoDBStorage implements DBStorage {
             TLAbsChatFull absChatFull = ((TLMessagesChatFull) dial).getFullChat();
             //check if chat full or channel full
             if (absChatFull instanceof TLChannelFull) {
-                //TODO
+                this.write(tlChannelFullToDocument((TLChannelFull) absChatFull));
             } else if (absChatFull instanceof TLChatFull) {
-                //TODO
+                this.write(tlChatFullToDocument((TLChatFull) absChatFull));
             }
         } else if (dial instanceof TLUserFull) {
             this.write(tlUserFullToDocument((TLUserFull) dial));
         }
+    }
+
+    /**
+     * writes users hashmap to db
+     * @param usersHashMap hashmap
+     */
+    @Override
+    public void writeUsersHashMap(HashMap<Integer, TLAbsUser> usersHashMap) {
+        Set<Integer> keys = usersHashMap.keySet();
+        for (Integer key : keys) {
+            TLAbsUser absUser = usersHashMap.get(key);
+            this.write(tlAbsUserToDocument(absUser));
+        }
+    }
+
+    /**
+     * writes chats hashmap to db
+     * @param chatsHashMap hashmap
+     */
+    @Override
+    public void writeChatsHashMap(HashMap<Integer, TLAbsChat> chatsHashMap) {
+        Set<Integer> keys = chatsHashMap.keySet();
+        for (Integer key : keys) {
+            TLAbsChat absChat = chatsHashMap.get(key);
+            this.write(tlAbsChatToDocument(absChat));
+        }
+    }
+
+    /**
+     * Converts channel full to document
+     * @param cf channel full
+     */
+    private static Document tlChannelFullToDocument(TLChannelFull cf){
+        return new Document("_id", cf.getId())
+                .append("class", "ChannelFull")
+                .append("about", cf.getAbout())
+                .append("adminCount", cf.getAdminCount())
+                .append("migratedFromId", cf.getMigratedFromChatId())
+                .append("pinnedMessageId", cf.getPinnedMessageId())
+                .append("exportedInvite", tlAbsChatInviteToDocument(cf.getExportedInvite()));
+    }
+
+    /**
+     * Converts chat full to document
+     * @param cf chat full
+     */
+    private static Document tlChatFullToDocument(TLChatFull cf){
+        return new Document("_id", cf.getId())
+                .append("class", "ChatFull")
+                .append("exportedInvite", tlAbsChatInviteToDocument(cf.getExportedInvite()));
+    }
+
+    /**
+     * Converts abstract chat invite to document
+     * @param aci abstract chat invite
+     */
+    private static Document tlAbsChatInviteToDocument(TLAbsChatInvite aci){
+        if (aci instanceof TLChatInvite){
+            return new Document("class", "ChatInvite")
+                    .append("chatInvite", tlChatInviteToDocument((TLChatInvite) aci));
+        } else if (aci instanceof TLChatInviteAlready){
+            return new Document("class", "ChatInviteAlready")
+                    .append("chat", tlAbsChatToDocument(((TLChatInviteAlready) aci).getChat()));
+        } else if (aci instanceof TLChatInviteEmpty){
+            return new Document("class", "ChatInviteEmpty");
+        } else if (aci instanceof TLChatInviteExported){
+            return new Document("class", "ChatInviteExported")
+                    .append("link", ((TLChatInviteExported) aci).getLink());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Converts chat invite to document
+     * @param ci chat invite
+     */
+    private static Document tlChatInviteToDocument(TLChatInvite ci){
+        return new Document("title", ci.getTitle())
+                .append("participantsCount", ci.getParticipantsCount())
+                .append("photo", tlAbsPhotoToDocument(ci.getPhoto()))
+                .append("participants", tlVectorTlAbsUserToDocument(ci.getParticipants()));
     }
 
     /**
@@ -278,7 +379,7 @@ public class MongoDBStorage implements DBStorage {
     }
 
     /**
-     * converts abstract user to document
+     * Converts abstract user to document
      * @param au abstract user
      */
     private static Document tlAbsUserToDocument(TLAbsUser au){
@@ -303,11 +404,192 @@ public class MongoDBStorage implements DBStorage {
         }
     }
 
+    /**
+     * Converts vector of abstract users to document
+     * @param vau abstract user vector
+     */
+    private static List<Document> tlVectorTlAbsUserToDocument(TLVector<TLAbsUser> vau){
+        List<Document> doc = new ArrayList<>();
+        if ((!vau.isEmpty()) && (vau != null)){
+            for (TLAbsUser au: vau){
+                doc.add(tlAbsUserToDocument(au));
+            }
+        }
+        return doc;
+    }
+
+    /**
+     * Converts an abstract chat to Document
+     * @param ac abstract chat
+     */
+    private static Document tlAbsChatToDocument(TLAbsChat ac){
+        if (ac instanceof TLChannel){
+            return new Document("class", "Channel")
+                    .append("_id", ac.getId())
+                    .append("accessHash", ((TLChannel) ac).getAccessHash())
+                    .append("date", ((TLChannel) ac).getDate())
+                    .append("flags", ((TLChannel) ac).getFlags())
+                    .append("title", ((TLChannel) ac).getTitle())
+                    .append("username", ((TLChannel) ac).getUsername())
+                    .append("version", ((TLChannel) ac).getVersion())
+                    .append("photo", tlAbsChatPhotoToDocument(((TLChannel) ac).getPhoto()));
+        } else if (ac instanceof TLChannelForbidden){
+            return new Document("class", "ChannelForbidden")
+                    .append("accessHash", ((TLChannelForbidden) ac).getAccessHash())
+                    .append("title", ((TLChannelForbidden) ac).getTitle())
+                    .append("id", ac.getId());
+        } else if (ac instanceof TLChat){
+            return new Document("class", "Chat")
+                    .append("id", ac.getId())
+                    .append("date", ((TLChat) ac).getDate())
+                    .append("flags", ((TLChat) ac).getFlags())
+                    .append("participantsCount", ((TLChat) ac).getParticipantsCount())
+                    .append("title", ((TLChat) ac).getTitle())
+                    .append("version", ((TLChat) ac).getVersion())
+                    .append("photo", tlAbsChatPhotoToDocument(((TLChat) ac).getPhoto()))
+                    .append("migratedTo", tlAbsInputChannelToDocument(((TLChat) ac).getMigratedTo()));
+        } else if (ac instanceof TLChatForbidden){
+            return new Document("class", "ChatForbidden")
+                    .append("title", ((TLChatForbidden) ac).getTitle())
+                    .append("id", ac.getId());
+        } else if (ac instanceof TLChatEmpty){
+            return new Document("class", "ChatEmpty")
+                    .append("id", ac.getId());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Converts abstract chat photo to document
+     * @param acp abstract chat photo
+     */
+    private static Document tlAbsChatPhotoToDocument(TLAbsChatPhoto acp){
+        if (acp instanceof TLChatPhoto){
+            return new Document("class", "ChatPhoto")
+                    .append("bigPhoto", tlAbsFileLocationToDocument(((TLChatPhoto) acp).getPhoto_big()))
+                    .append("smallPhoto", tlAbsFileLocationToDocument(((TLChatPhoto) acp).getPhoto_small()));
+        } else if (acp instanceof TLChatPhotoEmpty){
+            return new Document("class", "ChatPhotoEmpty");
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Converts file location to Document
+     * @param afl abstract file location
+     */
+    private static Document tlAbsFileLocationToDocument(TLAbsFileLocation afl){
+        if (afl instanceof TLFileLocation){
+            return new Document("class", "FileLocation")
+                    .append("secret", ((TLFileLocation) afl).getSecret())
+                    .append("volumeId",((TLFileLocation) afl).getVolumeId())
+                    .append("localId",((TLFileLocation) afl).getLocalId())
+                    .append("dcId",((TLFileLocation) afl).getDcId());
+        } else if (afl instanceof TLFileLocationUnavailable){
+            return new Document("class", "FileLocationUnavailable");
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Converts abstract input channel to document
+     * @param aic abstract input channel
+     */
+    private static Document tlAbsInputChannelToDocument (TLAbsInputChannel aic){
+        if (aic instanceof TLInputChannel){
+            return new Document("class", "InputChannel")
+                    .append("accessHash", ((TLInputChannel) aic).getAccessHash())
+                    .append("id", aic.getChannelId());
+        } else if (aic instanceof TLInputChannelEmpty){
+            return new Document("class", "InputChannelEmpty")
+                    .append("id",aic.getChannelId());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * converts abs photo to doc
+     * @param ap abs photo
+     * @return doc
+     */
+    private static Document tlAbsPhotoToDocument(TLAbsPhoto ap){
+        if (ap instanceof TLPhoto){
+            return new Document("class", "Photo")
+                    .append("id", ((TLPhoto) ap).getId())
+                    .append("accessHash", ((TLPhoto) ap).getAccessHash())
+                    .append("date", ((TLPhoto) ap).getDate())
+                    .append("location", getLargestPhotoLocation(((TLPhoto) ap).getSizes()));
+        } else if (ap instanceof TLPhotoEmpty){
+            return new Document("class", "PhotoEmpty")
+                    .append("id", ((TLPhotoEmpty) ap).getId());
+        } else {
+            return new Document("class", "Unknown");
+        }
+    }
+
+    /**
+     * gets the location of the largest (and last one in the list) accessible photo
+     * @param apss abs photo size
+     * @return doc
+     */
+    private static Document getLargestPhotoLocation(TLVector<TLAbsPhotoSize> apss){
+        // getting the last and largest TLPhotoSize
+        Document doc = null;
+        TLPhotoSize aps = null;
+        TLFileLocation psl = null;
+        for (int i = apss.size()-1; i >= 0; i--){
+            if (sizeAvailable(apss.get(i))){
+                aps = (TLPhotoSize) apss.get(i);
+                psl = (TLFileLocation) aps.getLocation();
+                doc = new Document("class", "PhotoSize")
+                        .append("size", aps.getSize())
+                        .append("type", aps.getType())
+                        .append("location", tlFileLocationToDocument(psl));
+                break;
+            }
+        }
+        return doc;
+    }
+
+    /**
+     * checks if file location available
+     * @param aps
+     * @return
+     */
+    private static boolean sizeAvailable(TLAbsPhotoSize aps){
+        boolean f = false;
+        if (aps instanceof TLPhotoSize){
+            if (((TLPhotoSize) aps).getLocation() instanceof TLFileLocation){
+                f = true;
+            }
+        }
+        return f;
+    }
+
+
+    /**
+     * converts file location to doc
+     * @param fl location
+     * @return doc
+     */
+    private static Document tlFileLocationToDocument(TLFileLocation fl){
+        return new Document("class", "FileLocation")
+                .append("size", fl.getDcId())
+                .append("localId", fl.getLocalId())
+                .append("volumeId", fl.getVolumeId())
+                .append("secret", fl.getSecret());
+    }
 
 
 
 
-
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////redo////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * Write a single message to DB
@@ -540,78 +822,7 @@ public class MongoDBStorage implements DBStorage {
                 .append("document", tlAbsDocumentToDocument(g.getDocument()));
     }
 
-    /**
-     * converts abs photo to doc
-     * @param ap abs photo
-     * @return doc
-     */
-    private static Document tlAbsPhotoToDocument(TLAbsPhoto ap){
-        if (ap instanceof TLPhoto){
-            return new Document("class", "Photo")
-                    .append("id", ((TLPhoto) ap).getId())
-                    .append("accessHash", ((TLPhoto) ap).getAccessHash())
-                    .append("date", ((TLPhoto) ap).getDate())
-                    .append("location", getLargestPhotoLocation(((TLPhoto) ap).getSizes()));
-        } else if (ap instanceof TLPhotoEmpty){
-            return new Document("class", "PhotoEmpty")
-                    .append("id", ((TLPhotoEmpty) ap).getId());
-        } else {
-            return new Document("class", "Unknown");
-        }
-    }
 
-    /**
-     * gets the location of the largest (and last one in the list) accessible photo
-     * @param apss abs photo size
-     * @return doc
-     */
-    private static Document getLargestPhotoLocation(TLVector<TLAbsPhotoSize> apss){
-        // getting the last and largest TLPhotoSize
-        Document doc = null;
-        TLPhotoSize aps = null;
-        TLFileLocation psl = null;
-        for (int i = apss.size()-1; i >= 0; i--){
-            if (sizeAvailable(apss.get(i))){
-                aps = (TLPhotoSize) apss.get(i);
-                psl = (TLFileLocation) aps.getLocation();
-                doc = new Document("class", "PhotoSize")
-                        .append("size", aps.getSize())
-                        .append("type", aps.getType())
-                        .append("location", tlFileLocationToDocument(psl));
-                break;
-            }
-        }
-        return doc;
-    }
-
-    /**
-     * checks if file location available
-     * @param aps
-     * @return
-     */
-    private static boolean sizeAvailable(TLAbsPhotoSize aps){
-        boolean f = false;
-        if (aps instanceof TLPhotoSize){
-            if (((TLPhotoSize) aps).getLocation() instanceof TLFileLocation){
-                f = true;
-            }
-        }
-        return f;
-    }
-
-
-    /**
-     * converts file location to doc
-     * @param fl location
-     * @return doc
-     */
-    private static Document tlFileLocationToDocument(TLFileLocation fl){
-        return new Document("class", "FileLocation")
-                .append("size", fl.getDcId())
-                .append("localId", fl.getLocalId())
-                .append("volumeId", fl.getVolumeId())
-                .append("secret", fl.getSecret());
-    }
 
     private static Document tlWebPageToDocument(TLAbsWebPage wp){
         if (wp instanceof TLWebPage){

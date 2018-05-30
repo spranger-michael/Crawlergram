@@ -53,15 +53,20 @@ public class MessagesAndMediaToDB {
             // writes messages of the dialog to "messages + [dialog_id]" table/collection/etc.
             dbStorage.setTarget(Const.MSG_DIAL_PREF + dialog.getPeer().getId());
 
+            System.err.println(dialog.getPeer().getId()+ " "+ absMessages.size());
             /*
             // write messages
             dbStorage.writeTLAbsMessages(absMessages);
-            System.err.println(dialog.getPeer().getId()+ " "+ absMessages.size());
             */
 
             // sleep between transmissions to avoid flood wait
             try {Thread.sleep(1000);} catch (InterruptedException ignored) {}
         }
+        // set targets and write hashmaps
+        dbStorage.setTarget(Const.USERS_COL);
+        dbStorage.writeUsersHashMap(usersHashMap);
+        dbStorage.setTarget(Const.CHATS_COL);
+        dbStorage.writeChatsHashMap(chatsHashMap);
     }
 
 
