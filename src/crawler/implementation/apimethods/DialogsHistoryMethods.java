@@ -14,6 +14,8 @@ import org.telegram.api.chat.TLAbsChatFull;
 import org.telegram.api.chat.TLChat;
 import org.telegram.api.chat.TLChatFull;
 import org.telegram.api.chat.channel.TLChannelFull;
+import org.telegram.api.chat.invite.TLAbsChatInvite;
+import org.telegram.api.chat.invite.TLChatInvite;
 import org.telegram.api.chat.participant.chatparticipants.TLAbsChatParticipants;
 import org.telegram.api.chat.participant.chatparticipants.TLChatParticipants;
 import org.telegram.api.dialog.TLDialog;
@@ -581,12 +583,16 @@ public class DialogsHistoryMethods {
         TLObject participants = null;
         if (full instanceof TLMessagesChatFull) {
             TLAbsChatFull absChatFull = ((TLMessagesChatFull) full).getFullChat();
+            TLAbsChatInvite absChatInvite = absChatFull.getExportedInvite();
             // update the hasmaps
+            if (absChatInvite instanceof TLChatInvite){
+                DataStructuresMethods.insertIntoUsersHashMap(usersHashMap, ((TLChatInvite) absChatInvite).getParticipants());
+            }
             DataStructuresMethods.insertIntoChatsHashMap(chatsHashMap, ((TLMessagesChatFull) full).getChats());
             DataStructuresMethods.insertIntoUsersHashMap(usersHashMap, ((TLMessagesChatFull) full).getUsers());
             //check if chat full or channel full
             if (absChatFull instanceof TLChannelFull) {
-                participants = getChannelParticipants(api, (TLChannelFull) absChatFull, chatsHashMap, limit, filter);
+                participants = getChannelParticipants(api, (TLChannelFull) absChatFull, chatsHashMap, usersHashMap, limit, filter);
             } else if (absChatFull instanceof TLChatFull) {
                 TLAbsChatParticipants p = ((TLChatFull) absChatFull).getParticipants();
                 if (p instanceof TLChatParticipants) {
@@ -608,7 +614,9 @@ public class DialogsHistoryMethods {
      * @param filter filter for participants retrieval: 0 - recent, 1 - admins, 2 - kicked, 3 - bots, default - recent
      */
     private static TLChannelParticipants getChannelParticipants(TelegramApi api, TLChannelFull channelFull,
-                                                                HashMap<Integer, TLAbsChat> chatsHashMap, int limit, int filter) {
+                                                                HashMap<Integer, TLAbsChat> chatsHashMap,
+                                                                HashMap<Integer, TLAbsUser> usersHashMap,
+                                                                int limit, int filter) {
         TLChannelParticipants channelParticipants = new TLChannelParticipants();
         TLVector<TLAbsUser> users = new TLVector<>();
         TLVector<TLAbsChannelParticipant> participants = new TLVector<>();
@@ -645,6 +653,7 @@ public class DialogsHistoryMethods {
             channelParticipants.setCount(users.size());
             channelParticipants.setUsers(users);
             channelParticipants.setParticipants(participants);
+            DataStructuresMethods.insertIntoUsersHashMap(usersHashMap, users);
         }
         return channelParticipants;
     }

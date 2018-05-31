@@ -13,6 +13,7 @@
 package crawler.db;
 
 import org.telegram.api.chat.TLAbsChat;
+import org.telegram.api.dialog.TLDialog;
 import org.telegram.api.message.TLAbsMessage;
 import org.telegram.api.message.media.TLAbsMessageMedia;
 import org.telegram.api.user.TLAbsUser;
@@ -47,12 +48,6 @@ public interface DBStorage {
     void write(Object obj);
 
     /**
-     * upsert object into db
-     * @param obj
-     */
-    void upsert(Object obj);
-
-    /**
      * writes full dialog to db
      * @param dial
      * @param chatsHashMap
@@ -73,16 +68,18 @@ public interface DBStorage {
     void writeChatsHashMap(HashMap<Integer, TLAbsChat> chatsHashMap);
 
     /**
-     * Writes message from dialogs to DB (each dialog to a single collection)
-     * @param absMessage
+     * writes participants
+     * @param participants
+     * @param dialog
      */
-    void writeTLAbsMessage(TLAbsMessage absMessage);
+    void writeParticipants(TLObject participants, TLDialog dialog);
 
     /**
      * Writes messages from dialogs to DB (each dialog to a single collection)
      * @param absMessages
+     * @param dialog
      */
-    void writeTLAbsMessages(TLVector<TLAbsMessage> absMessages);
+    void writeTLAbsMessages(TLVector<TLAbsMessage> absMessages, TLDialog dialog);
 
 
 

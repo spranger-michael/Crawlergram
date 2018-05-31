@@ -26,16 +26,25 @@ import java.util.List;
 import java.util.Set;
 
 import com.mongodb.client.model.Filters;
+import org.telegram.api.channel.TLChannelParticipants;
+import org.telegram.api.channel.participants.*;
 import org.telegram.api.chat.*;
 import org.telegram.api.chat.channel.TLChannel;
 import org.telegram.api.chat.channel.TLChannelForbidden;
 import org.telegram.api.chat.channel.TLChannelFull;
 import org.telegram.api.chat.invite.*;
+import org.telegram.api.chat.participant.chatparticipant.TLAbsChatParticipant;
+import org.telegram.api.chat.participant.chatparticipant.TLChatParticipant;
+import org.telegram.api.chat.participant.chatparticipant.TLChatParticipantAdmin;
+import org.telegram.api.chat.participant.chatparticipant.TLChatParticipantCreator;
+import org.telegram.api.chat.participant.chatparticipants.TLChatParticipants;
 import org.telegram.api.chat.photo.TLAbsChatPhoto;
 import org.telegram.api.chat.photo.TLChatPhoto;
 import org.telegram.api.chat.photo.TLChatPhotoEmpty;
+import org.telegram.api.dialog.TLDialog;
 import org.telegram.api.document.TLAbsDocument;
 import org.telegram.api.document.TLDocument;
+import org.telegram.api.document.TLDocumentEmpty;
 import org.telegram.api.document.attribute.*;
 import org.telegram.api.file.location.TLAbsFileLocation;
 import org.telegram.api.file.location.TLFileLocation;
@@ -43,10 +52,12 @@ import org.telegram.api.file.location.TLFileLocationUnavailable;
 import org.telegram.api.game.TLGame;
 import org.telegram.api.geo.point.TLAbsGeoPoint;
 import org.telegram.api.geo.point.TLGeoPoint;
+import org.telegram.api.geo.point.TLGeoPointEmpty;
 import org.telegram.api.input.chat.TLAbsInputChannel;
 import org.telegram.api.input.chat.TLInputChannel;
 import org.telegram.api.input.chat.TLInputChannelEmpty;
 import org.telegram.api.message.*;
+import org.telegram.api.message.action.TLAbsMessageAction;
 import org.telegram.api.message.media.*;
 import org.telegram.api.messages.TLMessagesChatFull;
 import org.telegram.api.peer.TLAbsPeer;
@@ -64,6 +75,7 @@ import org.telegram.api.user.TLUserEmpty;
 import org.telegram.api.user.TLUserFull;
 import org.telegram.api.webpage.TLAbsWebPage;
 import org.telegram.api.webpage.TLWebPage;
+import org.telegram.api.webpage.TLWebPageEmpty;
 import org.telegram.tl.TLObject;
 import org.telegram.tl.TLVector;
 
@@ -73,7 +85,7 @@ import org.telegram.tl.TLVector;
 
 public class MongoDBStorage implements DBStorage {
 
-    public static final String DOC_DIAL_PREF = "dialog"; // prefix for dialogs collections in DB
+    public static final String DOC_DIAL_PREF = "dialog"; // OLD prefix for dialogs collections in DB
     static String user; // the user name
     static String db; // the name of the db in which the user is defined
     static String psw; // the psw
@@ -83,8 +95,9 @@ public class MongoDBStorage implements DBStorage {
     static MongoClientOptions options; // client options
     static MongoClient mongoClient; // client instance
     static MongoDatabase database; // db instance
-    static GridFSBucket gridFSBucket; //bucket for files
+    static GridFSBucket gridFSBucket; // bucket for files
     static MongoCollection<Document> collection; //collection
+    static boolean upsert; // upsert into DB? if false - regular write
 
     public MongoDBStorage(String user, String db, String psw, String host, Integer port, String gridFSBucketName){
         this.user = user;
@@ -97,7 +110,7 @@ public class MongoDBStorage implements DBStorage {
         this.mongoClient = new MongoClient(new ServerAddress(host, port), credential, options);
         this.database = mongoClient.getDatabase(db);
         this.gridFSBucket = GridFSBuckets.create(this.database, gridFSBucketName);
-
+        this.upsert = false;
     }
 
     public static String getUser() {
@@ -188,6 +201,14 @@ public class MongoDBStorage implements DBStorage {
         MongoDBStorage.collection = collection;
     }
 
+    public static boolean isUpsert() {
+        return upsert;
+    }
+
+    public static void setUpsert(boolean upsert) {
+        MongoDBStorage.upsert = upsert;
+    }
+
     public static void setDatabase(String db) {
         MongoDBStorage.database = mongoClient.getDatabase(db);
     }
@@ -243,18 +264,24 @@ public class MongoDBStorage implements DBStorage {
      * @param obj
      */
     @Override
-    public void write(Object obj){
-        collection.insertOne((Document) obj);
-    }
+    public void write(Object obj) {
+        if (obj != null) {
+            if (!isUpsert()) {
+                try {
+                    collection.insertOne((Document) obj);
+                } catch (MongoException e) {
+                    System.err.println(e.getCode() + " " + e.getMessage());
+                }
+            } else {
+                try {
+                    Document doc = (Document) obj;
+                    UpdateResult uRes = collection.updateOne(Filters.eq("_id", doc.get("_id")), new Document("$set", doc), new UpdateOptions().upsert(true));
+                } catch (MongoException e) {
+                    System.err.println(e.getCode() + " " + e.getMessage());
+                }
 
-    /**
-     * upsert object into db
-     * @param obj
-     */
-    @Override
-    public void upsert(Object obj) {
-        Document doc = (Document) obj;
-        UpdateResult uRes = collection.updateOne(Filters.eq("_id",doc.get("_id")), new Document("$set",doc), new UpdateOptions().upsert(true));
+            }
+        }
     }
 
     /**
@@ -265,7 +292,7 @@ public class MongoDBStorage implements DBStorage {
      */
     @Override
     public void writeFullDialog(TLObject dial, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap){
-        // set target of writing
+        // set target
         this.setTarget(Const.DIALOGS);
         // write it
         if (dial instanceof TLMessagesChatFull) {
@@ -287,6 +314,9 @@ public class MongoDBStorage implements DBStorage {
      */
     @Override
     public void writeUsersHashMap(HashMap<Integer, TLAbsUser> usersHashMap) {
+        // set target
+        this.setTarget(Const.USERS_COL);
+        // write
         Set<Integer> keys = usersHashMap.keySet();
         for (Integer key : keys) {
             TLAbsUser absUser = usersHashMap.get(key);
@@ -300,10 +330,68 @@ public class MongoDBStorage implements DBStorage {
      */
     @Override
     public void writeChatsHashMap(HashMap<Integer, TLAbsChat> chatsHashMap) {
+        // set target
+        this.setTarget(Const.CHATS_COL);
+        // write
         Set<Integer> keys = chatsHashMap.keySet();
         for (Integer key : keys) {
             TLAbsChat absChat = chatsHashMap.get(key);
             this.write(tlAbsChatToDocument(absChat));
+        }
+    }
+
+    /**
+     * writes participants to db
+     * @param participants participants
+     */
+    @Override
+    public void writeParticipants(TLObject participants, TLDialog dialog) {
+        this.setTarget(Const.PAR_DIAL_PREF + dialog.getPeer().getId());
+        if (participants != null){
+            if (participants instanceof TLChatParticipants){
+                writeChatsParticipants(((TLChatParticipants) participants).getParticipants());
+            } else if (participants instanceof TLUserFull){
+                this.write(tlUserFullToDocument((TLUserFull) participants));
+            } else if ((participants instanceof TLChannelParticipants)){
+                if (((TLChannelParticipants) participants).getCount() > 0){
+                    writeChannelParticipants(((TLChannelParticipants) participants).getParticipants());
+                }
+            }
+        }
+    }
+
+    /**
+     * Write messages to DB
+     * @param absMessages messages
+     * @param dialog dialog
+     */
+    @Override
+    public void writeTLAbsMessages(TLVector<TLAbsMessage> absMessages, TLDialog dialog) {
+        this.setTarget(Const.MSG_DIAL_PREF + dialog.getPeer().getId());
+        if (!absMessages.isEmpty()){
+            try {
+                for (TLAbsMessage absMessage : absMessages) {
+                    writeTLAbsMessage(absMessage);
+                }
+            } catch (MongoException e) {
+                System.err.println(e.getCode() + " " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Write a single TLAbsMessage to DB
+     * @param absMessage
+     */
+    private void writeTLAbsMessage(TLAbsMessage absMessage){
+        if (absMessage instanceof TLMessage){
+            this.write(tlMessageToDocument((TLMessage) absMessage));
+        } else if (absMessage instanceof TLMessageService){
+            this.write(tlMessageServiceToDocument((TLMessageService) absMessage));
+        } else if (absMessage instanceof TLMessageEmpty){
+            this.write(new Document("class","MessageEmpty")
+                    .append("_id",((TLMessageEmpty) absMessage).getId())
+                    .append("chatId", absMessage.getChatId()));
         }
     }
 
@@ -437,10 +525,10 @@ public class MongoDBStorage implements DBStorage {
             return new Document("class", "ChannelForbidden")
                     .append("accessHash", ((TLChannelForbidden) ac).getAccessHash())
                     .append("title", ((TLChannelForbidden) ac).getTitle())
-                    .append("id", ac.getId());
+                    .append("_id", ac.getId());
         } else if (ac instanceof TLChat){
             return new Document("class", "Chat")
-                    .append("id", ac.getId())
+                    .append("_id", ac.getId())
                     .append("date", ((TLChat) ac).getDate())
                     .append("flags", ((TLChat) ac).getFlags())
                     .append("participantsCount", ((TLChat) ac).getParticipantsCount())
@@ -451,10 +539,10 @@ public class MongoDBStorage implements DBStorage {
         } else if (ac instanceof TLChatForbidden){
             return new Document("class", "ChatForbidden")
                     .append("title", ((TLChatForbidden) ac).getTitle())
-                    .append("id", ac.getId());
+                    .append("_id", ac.getId());
         } else if (ac instanceof TLChatEmpty){
             return new Document("class", "ChatEmpty")
-                    .append("id", ac.getId());
+                    .append("_id", ac.getId());
         } else {
             return null;
         }
@@ -502,10 +590,10 @@ public class MongoDBStorage implements DBStorage {
         if (aic instanceof TLInputChannel){
             return new Document("class", "InputChannel")
                     .append("accessHash", ((TLInputChannel) aic).getAccessHash())
-                    .append("id", aic.getChannelId());
+                    .append("_id", aic.getChannelId());
         } else if (aic instanceof TLInputChannelEmpty){
             return new Document("class", "InputChannelEmpty")
-                    .append("id",aic.getChannelId());
+                    .append("_id",aic.getChannelId());
         } else {
             return null;
         }
@@ -519,15 +607,15 @@ public class MongoDBStorage implements DBStorage {
     private static Document tlAbsPhotoToDocument(TLAbsPhoto ap){
         if (ap instanceof TLPhoto){
             return new Document("class", "Photo")
-                    .append("id", ((TLPhoto) ap).getId())
+                    .append("_id", ((TLPhoto) ap).getId())
                     .append("accessHash", ((TLPhoto) ap).getAccessHash())
                     .append("date", ((TLPhoto) ap).getDate())
                     .append("location", getLargestPhotoLocation(((TLPhoto) ap).getSizes()));
         } else if (ap instanceof TLPhotoEmpty){
             return new Document("class", "PhotoEmpty")
-                    .append("id", ((TLPhotoEmpty) ap).getId());
+                    .append("_id", ((TLPhotoEmpty) ap).getId());
         } else {
-            return new Document("class", "Unknown");
+            return null;
         }
     }
 
@@ -539,8 +627,8 @@ public class MongoDBStorage implements DBStorage {
     private static Document getLargestPhotoLocation(TLVector<TLAbsPhotoSize> apss){
         // getting the last and largest TLPhotoSize
         Document doc = null;
-        TLPhotoSize aps = null;
-        TLFileLocation psl = null;
+        TLPhotoSize aps;
+        TLFileLocation psl;
         for (int i = apss.size()-1; i >= 0; i--){
             if (sizeAvailable(apss.get(i))){
                 aps = (TLPhotoSize) apss.get(i);
@@ -584,54 +672,93 @@ public class MongoDBStorage implements DBStorage {
                 .append("secret", fl.getSecret());
     }
 
-
-
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////redo////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
     /**
-     * Write a single message to DB
-     * @param absMessage
+     * writes channel participants
+     * @param vacp participants vector
      */
-    @Override
-    public void writeTLAbsMessage(TLAbsMessage absMessage){
-
-        //TODO
-
-        if (absMessage instanceof TLMessage){
-
-        } else if (absMessage instanceof TLMessageService){
-
-        } else if (absMessage instanceof TLMessageEmpty){
-
-        }
-
-        //UpdateResult uRes = collection.updateOne(Filters.eq("_id",doc.get("_id")), new Document("$set",doc), new UpdateOptions().upsert(true));
-    }
-
-    /**
-     * Write messages to DB
-     * @param absMessages messages
-     */
-    @Override
-    public void writeTLAbsMessages(TLVector<TLAbsMessage> absMessages) {
-        try {
-            for (TLAbsMessage absMessage : absMessages) {
-                writeTLAbsMessage(absMessage);
-            }
-        } catch (MongoException e) {
-            System.err.println(e.getCode() + " " + e.getMessage());
+    private void writeChannelParticipants(TLVector<TLAbsChannelParticipant> vacp){
+        for (TLAbsChannelParticipant acp: vacp){
+            this.write(tlAbsChannelParticipantToDocument(acp));
         }
     }
 
     /**
-     * Converts TLMessage to Document
+     * converts participant to document
+     * @param acp participant
+     */
+    private static Document tlAbsChannelParticipantToDocument(TLAbsChannelParticipant acp){
+        if (acp instanceof TLChannelParticipant){
+            return new Document("class", "ChannelParticipant")
+                    .append("_id",((TLChannelParticipant) acp).getUserId())
+                    .append("date", ((TLChannelParticipant) acp).getDate());
+        } else if (acp instanceof TLChannelParticipantSelf){
+            return new Document("class", "ChannelParticipantSelf")
+                    .append("_id", ((TLChannelParticipantSelf) acp).getUserId())
+                    .append("date", ((TLChannelParticipantSelf) acp).getDate())
+                    .append("inviterId", ((TLChannelParticipantSelf) acp).getInviterId());
+        } else if (acp instanceof TLChannelParticipantModerator){
+            return new Document("class", "ChannelParticipantModerator")
+                    .append("_id", ((TLChannelParticipantModerator) acp).getUserId())
+                    .append("date", ((TLChannelParticipantModerator) acp).getDate())
+                    .append("inviterId", ((TLChannelParticipantModerator) acp).getInviterId());
+        } else if (acp instanceof TLChannelParticipantKicked){
+            return new Document("class", "ChannelParticipantKicked")
+                    .append("_id", ((TLChannelParticipantKicked) acp).getUserId())
+                    .append("date", ((TLChannelParticipantKicked) acp).getDate())
+                    .append("kickedBy", ((TLChannelParticipantKicked) acp).getKickedBy());
+        } else if (acp instanceof TLChannelParticipantEditor){
+            return new Document("class", "ChannelParticipantEditor")
+                    .append("_id", ((TLChannelParticipantEditor) acp).getUserId())
+                    .append("date", ((TLChannelParticipantEditor) acp).getDate())
+                    .append("inviterId", ((TLChannelParticipantEditor) acp).getInviterId());
+        } else if (acp instanceof TLChannelParticipantCreator){
+            return new Document("class", "ChannelParticipantCreator")
+                    .append("_id", ((TLChannelParticipantCreator) acp).getUserId());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * writes chat participants
+     * @param vacp participants vector
+     */
+    private void writeChatsParticipants(TLVector<TLAbsChatParticipant> vacp){
+        for (TLAbsChatParticipant acp: vacp){
+            this.write(tlAbsChatParticipantToDocument(acp));
+        }
+    }
+
+    /**
+     * converts participant to document
+     * @param acp participant
+     */
+    private static Document tlAbsChatParticipantToDocument(TLAbsChatParticipant acp){
+        if (acp instanceof TLChatParticipant){
+            return new Document("class", "ChatParticipant")
+                    .append("_id", acp.getUserId())
+                    .append("date", ((TLChatParticipant) acp).getDate())
+                    .append("inviterId", ((TLChatParticipant) acp).getInviterId());
+        } else if (acp instanceof TLChatParticipantAdmin){
+            return new Document("class", "ChatParticipantAdmin")
+                    .append("_id", acp.getUserId())
+                    .append("date", ((TLChatParticipantAdmin) acp).getDate())
+                    .append("inviterId", ((TLChatParticipantAdmin) acp).getInviterId());
+        } else if (acp instanceof TLChatParticipantCreator){
+            return new Document("class", "ChatParticipantCreator")
+                    .append("_id", acp.getUserId());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * converts message to document
+     * @param m message
      */
     private static Document tlMessageToDocument(TLMessage m){
         return new Document("_id", m.getId())
-                .append("classId", m.getClassId())
+                .append("class", "TLMessage")
                 .append("flags", m.getFlags())
                 .append("fromId", m.getFromId())
                 .append("toId", tlAbsPeerToDocument(m.getToId()))
@@ -652,13 +779,16 @@ public class MongoDBStorage implements DBStorage {
      */
     private static Document tlAbsPeerToDocument(TLAbsPeer ap){
         if (ap instanceof TLPeerUser){
-            return new Document("classId", ap.getClassId()).append("id", ap.getId());
+            return new Document("class", "PeerUser")
+                    .append("_id", ap.getId());
         } else if (ap instanceof TLPeerChannel){
-            return new Document("classId", ap.getClassId()).append("id", ap.getId());
+            return new Document("class", "PeerChannel")
+                    .append("_id", ap.getId());
         } else if (ap instanceof TLPeerChat){
-            return new Document("classId", ap.getClassId()).append("id", ap.getId());
+            return new Document("class", "PeerChat")
+                    .append("_id", ap.getId());
         } else {
-            return new Document("classId", ap.getClassId());
+            return null;
         }
     }
 
@@ -668,7 +798,7 @@ public class MongoDBStorage implements DBStorage {
      * @return doc
      */
     private static Document tlMsgFwdHeaderToDocument(TLMessageFwdHeader fh){
-        return new Document("classId", fh.getClassId())
+        return new Document("class", "MessageFwdHeader")
                 .append("fromId", fh.getFromId())
                 .append("date", fh.getDate())
                 .append("channelId", fh.getChannelId())
@@ -682,38 +812,38 @@ public class MongoDBStorage implements DBStorage {
      */
     private static Document tlAbsMessageMediaToDocument(TLAbsMessageMedia amm){
         if (amm instanceof TLMessageMediaContact) {
-            return new Document("classId", amm.getClassId())
-                    .append("id", ((TLMessageMediaContact) amm).getUserId())
+            return new Document("class", "MessageMediaContact")
+                    .append("_id", ((TLMessageMediaContact) amm).getUserId())
                     .append("firstName",((TLMessageMediaContact) amm).getFirstName())
                     .append("lastName", ((TLMessageMediaContact) amm).getLastName())
                     .append("phone", ((TLMessageMediaContact) amm).getPhoneNumber());
 
         } else if (amm instanceof TLMessageMediaDocument) {
-            return new Document("classId", amm.getClassId())
+            return new Document("class", "MessageMediaDocument")
                     .append("caption", ((TLMessageMediaDocument) amm).getCaption())
                     .append("document", tlAbsDocumentToDocument(((TLMessageMediaDocument) amm).getDocument()));
 
         } else if (amm instanceof TLMessageMediaEmpty) {
-            return new Document("classId", amm.getClassId());
+            return new Document("class", "MessageMediaEmpty");
 
         } else if (amm instanceof TLMessageMediaGame) {
-            return new Document("classId", amm.getClassId())
+            return new Document("class", "MessageMediaGame")
                     .append("", tlGameToDocument(((TLMessageMediaGame) amm).getGame()));
 
         } else if (amm instanceof TLMessageMediaGeo) {
-            return new Document("classId", amm.getClassId())
+            return new Document("class", "MessageMediaGeo")
                     .append("geo", tlGeoPointToDocument(((TLMessageMediaGeo) amm).getGeo()));
 
         } else if (amm instanceof TLMessageMediaPhoto) {
-            return new Document("classId", amm.getClassId())
+            return new Document("class", "MessageMediaPhoto")
                     .append("caption", ((TLMessageMediaPhoto) amm).getCaption())
                     .append("photo", tlAbsPhotoToDocument(((TLMessageMediaPhoto) amm).getPhoto()));
 
         } else if (amm instanceof TLMessageMediaUnsupported) {
-            return new Document("classId", amm.getClassId());
+            return new Document("class", "MessageMediaUnsupported");
 
         } else if (amm instanceof TLMessageMediaVenue) {
-            return new Document("classId", amm.getClassId())
+            return new Document("class", "MessageMediaVenue")
                     .append("id", ((TLMessageMediaVenue) amm).getVenue_id())
                     .append("address", ((TLMessageMediaVenue) amm).getAddress())
                     .append("provider", ((TLMessageMediaVenue) amm).getProvider())
@@ -721,11 +851,11 @@ public class MongoDBStorage implements DBStorage {
                     .append("geo", tlGeoPointToDocument(((TLMessageMediaVenue) amm).getGeo()));
 
         } else if (amm instanceof TLMessageMediaWebPage) {
-            return new Document("classId", amm.getClassId())
+            return new Document("class", "MessageMediaWebPage")
                     .append("", (tlWebPageToDocument(((TLMessageMediaWebPage) amm).getWebPage())));
 
         } else if (amm instanceof TLMessageMediaInvoice) {
-            return new Document("classId", amm.getClassId())
+            return new Document("class", "MessageMediaInvoice")
                     .append("title", ((TLMessageMediaInvoice) amm).getTitle())
                     .append("amount", ((TLMessageMediaInvoice) amm).getTotalAmount())
                     .append("currency", ((TLMessageMediaInvoice) amm).getCurrency())
@@ -733,7 +863,7 @@ public class MongoDBStorage implements DBStorage {
                     .append("msgId", ((TLMessageMediaInvoice) amm).getReceiptMsgId())
                     .append("startParam", ((TLMessageMediaInvoice) amm).getStartParam());
         } else {
-            return new Document("classId", amm.getClassId());
+            return null;
         }
     }
 
@@ -744,11 +874,13 @@ public class MongoDBStorage implements DBStorage {
      */
     private static Document tlGeoPointToDocument(TLAbsGeoPoint agp){
         if (agp instanceof TLGeoPoint){
-            return new Document("classId", agp.getClassId())
+            return new Document("class", "GeoPoint")
                     .append("lat", ((TLGeoPoint) agp).getLat())
                     .append("lon", ((TLGeoPoint) agp).getLon());
+        } else if (agp instanceof TLGeoPointEmpty) {
+            return new Document("class", "GeoPointEmpty");
         } else {
-            return new Document("classId", agp.getClassId());
+            return null;
         }
     }
 
@@ -759,8 +891,8 @@ public class MongoDBStorage implements DBStorage {
      */
     private static Document tlAbsDocumentToDocument(TLAbsDocument ad){
         if (ad instanceof TLDocument){
-            return new Document("classId", ad.getClassId())
-                    .append("id", ad.getId())
+            return new Document("class", "Document")
+                    .append("_id", ad.getId())
                     .append("accessHash", ((TLDocument) ad).getAccessHash())
                     .append("dcId", ((TLDocument) ad).getDcId())
                     .append("date", ((TLDocument) ad).getDate())
@@ -769,9 +901,11 @@ public class MongoDBStorage implements DBStorage {
                     .append("version", ((TLDocument) ad).getVersion())
                     // only file name & no thumb
                     .append("filename", tlAbsDocumentAttributesToName(((TLDocument) ad).getAttributes(), (TLDocument) ad));
+        } else if (ad instanceof TLDocumentEmpty) {
+            return new Document("class", "DocumentEmpty")
+                    .append("_id", ad.getId());
         } else {
-            return new Document("classId", ad.getClassId())
-                    .append("id", ad.getId());
+            return null;
         }
     }
 
@@ -813,8 +947,8 @@ public class MongoDBStorage implements DBStorage {
      * @return doc
      */
     private static Document tlGameToDocument(TLGame g){
-        return new Document("classId", g.getClassId())
-                .append("id", g.getId())
+        return new Document("class", "Game")
+                .append("_id", g.getId())
                 .append("name", g.getShortName())
                 .append("title", g.getTitle())
                 .append("accessHash", g.getAccessHash())
@@ -822,19 +956,43 @@ public class MongoDBStorage implements DBStorage {
                 .append("document", tlAbsDocumentToDocument(g.getDocument()));
     }
 
-
-
+    /**
+     * converts web page to document
+     * @param wp web page
+     */
     private static Document tlWebPageToDocument(TLAbsWebPage wp){
         if (wp instanceof TLWebPage){
-            return new Document("classId", wp.getClassId())
+            return new Document("class", "WebPage")
                     .append("size", ((TLWebPage) wp).getTitle())
                     .append("localId", ((TLWebPage) wp).getUrl())
                     .append("volumeId", ((TLWebPage) wp).getSite_name());
+        } else if (wp instanceof TLWebPageEmpty) {
+            return new Document("class", "WebPageEmpty");
         } else {
-            return new Document("classId", wp.getClassId());
+            return null;
         }
     }
 
+    /**
+     * converts service message to document
+     * @param ms
+     */
+    private static Document tlMessageServiceToDocument(TLMessageService ms){
+        return new Document("class", "MessageService")
+                .append("_id", ms.getId())
+                .append("date", ms.getDate())
+                .append("chatId", ms.getChatId())
+                .append("flags", ms.getFlags())
+                .append("fromId", ms.getFromId())
+                .append("toId", tlAbsPeerToDocument(ms.getToId()))
+                .append("replyToMsgId", ms.getReplyToMessageId())
+                .append("action", tlAbsMessageActionToDocument(ms.getAction()));
+    }
+
+    private static Document tlAbsMessageActionToDocument(TLAbsMessageAction ama){
+        //TODO
+        return null;
+    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////old/////////////////////////////////////////////////////////////

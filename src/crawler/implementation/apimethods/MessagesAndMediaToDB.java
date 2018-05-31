@@ -46,13 +46,12 @@ public class MessagesAndMediaToDB {
             //reads participants
             TLObject participants = DialogsHistoryMethods.getParticipants(api, fullDialog, chatsHashMap, usersHashMap, parLimit, filter);
             // writes participants of the dialog to "messages + [dialog_id]" table/collection/etc.
-            dbStorage.setTarget(Const.PAR_DIAL_PREF + dialog.getPeer().getId());
+            dbStorage.writeParticipants(participants, dialog);
 
             //reads the messages
             TLVector<TLAbsMessage> absMessages = DialogsHistoryMethods.getWholeMessagesHistory(api, dialog, chatsHashMap, usersHashMap, messagesHashMap, msgLimit);
             // writes messages of the dialog to "messages + [dialog_id]" table/collection/etc.
-            dbStorage.setTarget(Const.MSG_DIAL_PREF + dialog.getPeer().getId());
-
+            dbStorage.writeTLAbsMessages(absMessages, dialog);
             System.err.println(dialog.getPeer().getId()+ " "+ absMessages.size());
             /*
             // write messages
@@ -62,10 +61,8 @@ public class MessagesAndMediaToDB {
             // sleep between transmissions to avoid flood wait
             try {Thread.sleep(1000);} catch (InterruptedException ignored) {}
         }
-        // set targets and write hashmaps
-        dbStorage.setTarget(Const.USERS_COL);
+        // write hashmaps
         dbStorage.writeUsersHashMap(usersHashMap);
-        dbStorage.setTarget(Const.CHATS_COL);
         dbStorage.writeChatsHashMap(chatsHashMap);
     }
 
