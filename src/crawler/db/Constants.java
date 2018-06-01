@@ -10,7 +10,7 @@ package crawler.db;
  * DB constants
  */
 
-public class Const {
+public class Constants {
     public static String MSG_DIAL_PREF = "MESSAGES"; // dialog messages table/collection/etc. prefix
     public static String PAR_DIAL_PREF = "PARTICIPANTS"; // dialog participants table/collection/etc. prefix
     public static String USERS_COL = "USERS"; // users table/collection/etc.
@@ -54,6 +54,6 @@ public class Const {
     }
 
     public static void setDialogs(String DIALOGS) {
-        Const.DIALOGS = DIALOGS;
+        Constants.DIALOGS = DIALOGS;
     }
 }

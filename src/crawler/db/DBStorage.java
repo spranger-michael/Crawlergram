@@ -81,8 +81,18 @@ public interface DBStorage {
      */
     void writeTLAbsMessages(TLVector<TLAbsMessage> absMessages, TLDialog dialog);
 
+    /**
+     * max id of the message from a particular chat
+     */
+    Integer getMessageMaxId(TLDialog dialog);
 
+    /**
+     * min id of the message from a particular chat (for offset)
+     */
+    Integer getMessageMinId(TLDialog dialog);
 
-
-
+    /**
+     * date of min id message from a particular chat (for offset)
+     */
+    Integer getMessageMinIdDate(TLDialog dialog);
 }

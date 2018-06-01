@@ -7,15 +7,13 @@
 package crawler.db.mongo;
 
 import com.mongodb.*;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.MongoIterable;
+import com.mongodb.client.*;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
+import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
-import crawler.db.Const;
+import crawler.db.Constants;
 import crawler.db.DBStorage;
 import crawler.implementation.structures.MessageDoc;
 import org.bson.Document;
@@ -298,7 +296,7 @@ public class MongoDBStorage implements DBStorage {
     @Override
     public void writeFullDialog(TLObject dial, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap){
         // set target
-        this.setTarget(Const.DIALOGS);
+        this.setTarget(Constants.DIALOGS);
         // write it
         if (dial instanceof TLMessagesChatFull) {
             TLAbsChatFull absChatFull = ((TLMessagesChatFull) dial).getFullChat();
@@ -320,7 +318,7 @@ public class MongoDBStorage implements DBStorage {
     @Override
     public void writeUsersHashMap(HashMap<Integer, TLAbsUser> usersHashMap) {
         // set target
-        this.setTarget(Const.USERS_COL);
+        this.setTarget(Constants.USERS_COL);
         // write
         Set<Integer> keys = usersHashMap.keySet();
         for (Integer key : keys) {
@@ -336,7 +334,7 @@ public class MongoDBStorage implements DBStorage {
     @Override
     public void writeChatsHashMap(HashMap<Integer, TLAbsChat> chatsHashMap) {
         // set target
-        this.setTarget(Const.CHATS_COL);
+        this.setTarget(Constants.CHATS_COL);
         // write
         Set<Integer> keys = chatsHashMap.keySet();
         for (Integer key : keys) {
@@ -351,7 +349,7 @@ public class MongoDBStorage implements DBStorage {
      */
     @Override
     public void writeParticipants(TLObject participants, TLDialog dialog) {
-        this.setTarget(Const.PAR_DIAL_PREF + dialog.getPeer().getId());
+        this.setTarget(Constants.PAR_DIAL_PREF + dialog.getPeer().getId());
         if (participants != null){
             if (participants instanceof TLChatParticipants){
                 writeChatsParticipants(((TLChatParticipants) participants).getParticipants());
@@ -372,7 +370,7 @@ public class MongoDBStorage implements DBStorage {
      */
     @Override
     public void writeTLAbsMessages(TLVector<TLAbsMessage> absMessages, TLDialog dialog) {
-        this.setTarget(Const.MSG_DIAL_PREF + dialog.getPeer().getId());
+        this.setTarget(Constants.MSG_DIAL_PREF + dialog.getPeer().getId());
         if (!absMessages.isEmpty()){
             try {
                 for (TLAbsMessage absMessage : absMessages) {
@@ -381,6 +379,54 @@ public class MongoDBStorage implements DBStorage {
             } catch (MongoException e) {
                 System.err.println(e.getCode() + " " + e.getMessage());
             }
+        }
+    }
+
+    /**
+     * max id of the message from a particular chat
+     */
+    @Override
+    public Integer getMessageMaxId(TLDialog dialog){
+        try {
+            this.setTarget(Constants.MSG_DIAL_PREF + dialog.getPeer().getId());
+            FindIterable<Document> findMax = collection.find().sort(Sorts.descending("_id")).limit(1);
+            Document docMax = findMax.first();
+            return docMax != null ? (Integer) docMax.get("_id") : null;
+        } catch (MongoException e) {
+            System.err.println(e.getCode() + " " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * min id of the message from a particular chat (for offset)
+     */
+    @Override
+    public Integer getMessageMinId(TLDialog dialog) {
+        try {
+            this.setTarget(Constants.MSG_DIAL_PREF + dialog.getPeer().getId());
+            FindIterable<Document> findMin = collection.find().sort(Sorts.ascending("_id")).limit(1);
+            Document docMin = findMin.first();
+            return docMin != null ? (Integer) docMin.get("_id") : null;
+        } catch (MongoException e) {
+            System.err.println(e.getCode() + " " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * date of min id message from a particular chat (for offset)
+     */
+    @Override
+    public Integer getMessageMinIdDate(TLDialog dialog) {
+        try {
+            this.setTarget(Constants.MSG_DIAL_PREF + dialog.getPeer().getId());
+            FindIterable<Document> findMin = collection.find().sort(Sorts.ascending("_id")).limit(1);
+            Document docMin = findMin.first();
+            return docMin != null ? (Integer) docMin.get("date") : null;
+        } catch (MongoException e) {
+            System.err.println(e.getCode() + " " + e.getMessage());
+            return null;
         }
     }
 
@@ -763,7 +809,7 @@ public class MongoDBStorage implements DBStorage {
      */
     private static Document tlMessageToDocument(TLMessage m){
         return new Document("_id", m.getId())
-                .append("class", "TLMessage")
+                .append("class", "Message")
                 .append("flags", m.getFlags())
                 .append("fromId", m.getFromId())
                 .append("toId", tlAbsPeerToDocument(m.getToId()))
@@ -803,11 +849,15 @@ public class MongoDBStorage implements DBStorage {
      * @return doc
      */
     private static Document tlMsgFwdHeaderToDocument(TLMessageFwdHeader fh){
-        return new Document("class", "MessageFwdHeader")
-                .append("fromId", fh.getFromId())
-                .append("date", fh.getDate())
-                .append("channelId", fh.getChannelId())
-                .append("channelPost", fh.getChannelPost());
+        if (fh != null) {
+            return new Document("class", "MessageFwdHeader")
+                    .append("fromId", fh.getFromId())
+                    .append("date", fh.getDate())
+                    .append("channelId", fh.getChannelId())
+                    .append("channelPost", fh.getChannelPost());
+        } else{
+            return null;
+        }
     }
 
     /**
@@ -1109,6 +1159,10 @@ public class MongoDBStorage implements DBStorage {
                 .append("streetLine2", pa.getStreetLine2());
     }
 
+    /**
+     * convetrs apcdr to document
+     * @param apcdr phone call discard reason
+     */
     private static Document tlAbsPhoneCallDiscardReasonToDocument(TLAbsPhoneCallDiscardReason apcdr){
         if (apcdr instanceof TLPhoneCallDiscardReasonBusy){
             return new Document("class", "PhoneCallDiscardReasonBusy");
@@ -1220,6 +1274,19 @@ public class MongoDBStorage implements DBStorage {
             mds.add(new MessageDoc((Integer) doc.get("_id"), (Integer) doc.get("date"), (String) doc.get("text")));
         }
         return mds;
+    }
+
+    /**
+     * finds min & max ids of target
+     */
+    public void findMinMaxIds(){
+        FindIterable<Document> findMin = collection.find().sort(Sorts.ascending("_id")).limit(1);
+        FindIterable<Document> findMax = collection.find().sort(Sorts.descending("_id")).limit(1);
+        Document docMin = findMin.first();
+        Document docMax = findMax.first();
+        int minId = docMin != null ? (Integer) docMin.get("_id") : null;
+        int maxId = docMax != null ? (Integer) docMax.get("_id") : null;
+        System.out.println();
     }
 
 }

@@ -6,6 +6,7 @@
 
 package crawler.implementation.apimethods;
 
+import crawler.db.mongo.MessageHistoryExclusions;
 import crawler.implementation.structures.DataStructuresMethods;
 import org.telegram.api.channel.TLChannelParticipants;
 import org.telegram.api.channel.participants.*;
@@ -309,6 +310,61 @@ public class DialogsHistoryMethods {
                                                                  HashMap<Integer, TLAbsUser> usersHashMap,
                                                                  HashMap<Integer, TLAbsMessage> messagesHashMap,
                                                                  int limit) {
+        // sleep time (Telegram can send FLOOD WAIT ERROR if the requests are done too often)
+        TLVector<TLAbsMessage> messages = initMessages(dialog, messagesHashMap);
+        Set<Integer> messageIdSet = new HashSet<>();
+        Integer offId = initOffsetsId(messages); // offset id
+        Integer offDate = initOffsetsDate(messages); // offset date
+        int receivedMsgs = 0; // received messages
+        int iter = 0;
+        while (receivedMessagesCheck(receivedMsgs, limit)) {
+            TLRequestMessagesGetHistory getHistory = SetTLObjectsMethods.getHistoryRequestSet(dialog, chatsHashMap, usersHashMap, 100, offDate, offId);
+            // try to get messages (in recusrsion), use 0 as initial depth
+            TLAbsMessages absMessages = (TLAbsMessages) sleepAndRequest(api, getHistory, 100, 0);
+            // if returns no messages -> break the loop
+            if (absMessages.getMessages().isEmpty() || absMessages == null || absMessages.getMessages() == null) { break; }
+            // update known users and chats hashmaps
+            DataStructuresMethods.insertIntoChatsHashMap(chatsHashMap, absMessages.getChats());
+            DataStructuresMethods.insertIntoUsersHashMap(usersHashMap, absMessages.getUsers());
+            // abstract messages
+            TLVector<TLAbsMessage> absMessagesVector = absMessages.getMessages();
+            // collect non-empty ones
+            getNonEmptyMessagesFromHistory(messages, absMessagesVector, messageIdSet);
+            receivedMsgs = messages.size();
+            // if returns number of messages less than the chunk size (100) - end of the chat -> break the loop
+            if (absMessagesVector.size() < 100) {break;}
+            // offsets: id and date of last message
+            offId = resetOffsetsId(messages.get(messages.size() - 1));
+            offDate = resetOffsetsDate(messages.get(messages.size() - 1));
+
+            // sleep once per 10 iterations for 1 sec
+            iter = sleepOncePerNIters(iter, 10);
+        }
+        if ((messages.size() > limit) && (limit != 0)){
+            int delta = messages.size() - limit;
+            messages.subList(messages.size()-1-delta,messages.size()-1).clear();
+        }
+        return messages;
+    }
+
+    /**
+     * Gets message history (except empty messages). Telegram returns only 100 messages at maximum by default -> returns messages in chunks with offsets.
+     * @param	api  TelegramApi instance for RPC request
+     * @param   dialog  dialog
+     * @param   chatsHashMap    chats hashtable
+     * @param   usersHashMap    users hashtable
+     * @param   limit   maximum number of retrieved messages from each dialog (0 if need to get all the messages from dialog)
+     * @see TelegramApi
+     * @see AbsApiState
+     */
+    public static TLVector<TLAbsMessage> getWholeMessagesHistoryWithExclusions(TelegramApi api,
+                                                                 TLDialog dialog,
+                                                                 HashMap<Integer, TLAbsChat> chatsHashMap,
+                                                                 HashMap<Integer, TLAbsUser> usersHashMap,
+                                                                 HashMap<Integer, TLAbsMessage> messagesHashMap,
+                                                                 MessageHistoryExclusions exclusions,
+                                                                 int limit) {
+        //TODO
         // sleep time (Telegram can send FLOOD WAIT ERROR if the requests are done too often)
         TLVector<TLAbsMessage> messages = initMessages(dialog, messagesHashMap);
         Set<Integer> messageIdSet = new HashSet<>();

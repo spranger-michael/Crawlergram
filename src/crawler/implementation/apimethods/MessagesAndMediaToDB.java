@@ -6,8 +6,8 @@
 
 package crawler.implementation.apimethods;
 
-import crawler.db.Const;
 import crawler.db.DBStorage;
+import crawler.db.mongo.MessageHistoryExclusions;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.dialog.TLDialog;
 import org.telegram.api.engine.TelegramApi;
@@ -38,6 +38,9 @@ public class MessagesAndMediaToDB {
                                             HashMap<Integer, TLAbsMessage> messagesHashMap,
                                             int msgLimit, int parLimit, int filter) {
         for (TLDialog dialog : dialogs) {
+
+            MessageHistoryExclusions exclusions = new MessageHistoryExclusions(dbStorage, dialog);
+
             //reads full dialog info
             TLObject fullDialog = DialogsHistoryMethods.getFullDialog(api, dialog, chatsHashMap, usersHashMap);
             //writes full dialog info
@@ -49,7 +52,12 @@ public class MessagesAndMediaToDB {
             dbStorage.writeParticipants(participants, dialog);
 
             //reads the messages
-            TLVector<TLAbsMessage> absMessages = DialogsHistoryMethods.getWholeMessagesHistory(api, dialog, chatsHashMap, usersHashMap, messagesHashMap, msgLimit);
+            TLVector<TLAbsMessage> absMessages;
+            if (exclusions.exist()){
+                absMessages = DialogsHistoryMethods.getWholeMessagesHistoryWithExclusions(api, dialog, chatsHashMap, usersHashMap, messagesHashMap, exclusions, msgLimit);
+            } else {
+                absMessages = DialogsHistoryMethods.getWholeMessagesHistory(api, dialog, chatsHashMap, usersHashMap, messagesHashMap, msgLimit);
+            }
             // writes messages of the dialog to "messages + [dialog_id]" table/collection/etc.
             dbStorage.writeTLAbsMessages(absMessages, dialog);
             System.err.println(dialog.getPeer().getId()+ " "+ absMessages.size());

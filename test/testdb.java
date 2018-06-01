@@ -26,14 +26,15 @@ public class testdb {
 
         //HashMap<Integer, List<MessageDoc>> hm = mongo.dbReadMessageDocsHashMap();
 
+
         List<Document> dl = new ArrayList<>();
         dl.add(new Document("s", 1).append("1", "s"));
         dl.add(new Document("a", 2).append("2","a"));
         dl.add(new Document("q", 3).append("3","q"));
 
-        mongo.setTarget("testColl");
 
-        Document doc = new Document("_id", "MongoDB")
+        /*
+        Document doc = new Document("_id", 1000000)
                 .append("type", "database")
                 .append("count", 1)
                 .append("versions", Arrays.asList("v3.2", "v3.0", "v2.6"))
@@ -42,6 +43,10 @@ public class testdb {
                 .append("afl", dl);
 
         mongo.write(doc);
+        */
+
+        mongo.setTarget("testColl");
+        mongo.findMinMaxIds();
 
         //mongo.dropTarget("testColl");
         //mongo.dropDatabase();
