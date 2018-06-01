@@ -7,7 +7,7 @@
 package crawler.implementation.apimethods;
 
 import crawler.db.DBStorage;
-import crawler.db.mongo.MessageHistoryExclusions;
+import crawler.db.MessageHistoryExclusions;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.dialog.TLDialog;
 import org.telegram.api.engine.TelegramApi;
@@ -37,6 +37,8 @@ public class MessagesAndMediaToDB {
                                             HashMap<Integer, TLAbsUser> usersHashMap,
                                             HashMap<Integer, TLAbsMessage> messagesHashMap,
                                             int msgLimit, int parLimit, int filter) {
+        //TODO
+
         for (TLDialog dialog : dialogs) {
 
             MessageHistoryExclusions exclusions = new MessageHistoryExclusions(dbStorage, dialog);

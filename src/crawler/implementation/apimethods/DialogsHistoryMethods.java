@@ -6,7 +6,7 @@
 
 package crawler.implementation.apimethods;
 
-import crawler.db.mongo.MessageHistoryExclusions;
+import crawler.db.MessageHistoryExclusions;
 import crawler.implementation.structures.DataStructuresMethods;
 import org.telegram.api.channel.TLChannelParticipants;
 import org.telegram.api.channel.participants.*;

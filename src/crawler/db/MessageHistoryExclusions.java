@@ -4,7 +4,13 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.db.mongo;
+/*
+ * Title: MessageHistoryExclusions.java
+ * Project: telegramJ
+ * Creator: Georgii Mikriukov
+ */
+
+package crawler.db;
 
 import crawler.db.DBStorage;
 import org.telegram.api.dialog.TLDialog;
