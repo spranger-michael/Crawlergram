@@ -55,7 +55,7 @@ public class testmsg {
 
 
 
-        //MessagesAndMediaToDB.saveMessagesOnlyToDB(api, dialogs, chatsHashMap, usersHashMap, messagesHashMap, 1000);
+        //MessagesAndMediaToDB.saveOnlyMessagesToDB(api, dialogs, chatsHashMap, usersHashMap, messagesHashMap, 1000);
 
 
 

@@ -86,7 +86,7 @@ public class CrawlerMain {
         int filter = 0; // participants filter: 0 - recent, 1 - admins, 2 - kicked, 3 - bots, default - recent
 
         //Saves messages and media and outputs messages in console:
-        MessagesAndMediaToDB.saveMessagesOnlyToDB(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter);
+        MessagesAndMediaToDB.saveOnlyMessagesToDB(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter);
 
         //mongo.dbWriteMessageDocsHashMap(docsInDialogs);
 

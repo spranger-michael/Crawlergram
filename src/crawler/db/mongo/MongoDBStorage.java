@@ -57,13 +57,17 @@ import org.telegram.api.input.chat.TLAbsInputChannel;
 import org.telegram.api.input.chat.TLInputChannel;
 import org.telegram.api.input.chat.TLInputChannelEmpty;
 import org.telegram.api.message.*;
-import org.telegram.api.message.action.TLAbsMessageAction;
+import org.telegram.api.message.action.*;
 import org.telegram.api.message.media.*;
 import org.telegram.api.messages.TLMessagesChatFull;
+import org.telegram.api.paymentapi.TLPaymentCharge;
+import org.telegram.api.paymentapi.TLPaymentRequestedInfo;
+import org.telegram.api.paymentapi.TLPostAddress;
 import org.telegram.api.peer.TLAbsPeer;
 import org.telegram.api.peer.TLPeerChannel;
 import org.telegram.api.peer.TLPeerChat;
 import org.telegram.api.peer.TLPeerUser;
+import org.telegram.api.phone.call.discardreason.*;
 import org.telegram.api.photo.TLAbsPhoto;
 import org.telegram.api.photo.TLPhoto;
 import org.telegram.api.photo.TLPhotoEmpty;
@@ -76,6 +80,7 @@ import org.telegram.api.user.TLUserFull;
 import org.telegram.api.webpage.TLAbsWebPage;
 import org.telegram.api.webpage.TLWebPage;
 import org.telegram.api.webpage.TLWebPageEmpty;
+import org.telegram.tl.TLIntVector;
 import org.telegram.tl.TLObject;
 import org.telegram.tl.TLVector;
 
@@ -990,8 +995,132 @@ public class MongoDBStorage implements DBStorage {
     }
 
     private static Document tlAbsMessageActionToDocument(TLAbsMessageAction ama){
-        //TODO
-        return null;
+        if (ama instanceof TLMessageActionEmpty){
+            return new Document("class", "MessageActionEmpty");
+        } else if (ama instanceof TLMessageActionChannelCreate){
+            return new Document("class", "MessageActionChannelCreate")
+                    .append("title", ((TLMessageActionChannelCreate) ama).getTitle());
+        } else if (ama instanceof TLMessageActionChannelMigratedFrom){
+            return new Document("class", "MessageActionChannelMigratedFrom")
+                    .append("title",((TLMessageActionChannelMigratedFrom) ama).getTitle())
+                    .append("chatId",((TLMessageActionChannelMigratedFrom) ama).getChatId());
+        } else if (ama instanceof TLMessageActionChatAddUser){
+            return new Document("class", "MessageActionChatAddUser")
+                    .append("users", tlIntVectorToList(((TLMessageActionChatAddUser) ama).getUsers()));
+        } else if (ama instanceof TLMessageActionChatCreate){
+            return new Document("class", "MessageAction")
+                    .append("title",((TLMessageActionChatCreate) ama).getTitle())
+                    .append("users", tlIntVectorToList(((TLMessageActionChatCreate) ama).getUsers()));
+        } else if (ama instanceof TLMessageActionChatDeletePhoto){
+            return new Document("class", "MessageActionChatDeletePhoto");
+        } else if (ama instanceof TLMessageActionChatDeleteUser){
+            return new Document("class", "MessageActionChatDeleteUser")
+                    .append("user",((TLMessageActionChatDeleteUser) ama).getUserId());
+        } else if (ama instanceof TLMessageActionChatEditPhoto){
+            return new Document("class", "MessageActionChatEditPhoto")
+                    .append("photo",tlAbsPhotoToDocument(((TLMessageActionChatEditPhoto) ama).getPhoto()));
+        } else if (ama instanceof TLMessageActionChatEditTitle){
+            return new Document("class", "MessageActionChatEditTitle")
+                    .append("title",((TLMessageActionChatEditTitle) ama).getTitle());
+        } else if (ama instanceof TLMessageActionChatJoinedByLink){
+            return new Document("class", "MessageActionChatJoinedByLink")
+                    .append("inviterId",((TLMessageActionChatJoinedByLink) ama).getInviterId());
+        } else if (ama instanceof TLMessageActionGameScore){
+            return new Document("class", "MessageActionGameScore")
+                    .append("game",((TLMessageActionGameScore) ama).getGameId())
+                    .append("score",((TLMessageActionGameScore) ama).getScore());
+        } else if (ama instanceof TLMessageActionHistoryClear){
+            return new Document("class", "MessageActionHistoryClear");
+        } else if (ama instanceof TLMessageActionMigrateTo){
+            return new Document("class", "MessageActionMigrateTo")
+                    .append("channelId",((TLMessageActionMigrateTo) ama).getChannelId());
+        } else if (ama instanceof TLMessageActionPaymentSent){
+            return new Document("class", "MessageActionPaymentSent")
+                    .append("totalAmount",((TLMessageActionPaymentSent) ama).getTotalAmount())
+                    .append("currency", ((TLMessageActionPaymentSent) ama).getCurrency());
+        } else if (ama instanceof TLMessageActionPaymentSentMe){
+            return new Document("class", "MessageActionPaymentSentMe")
+                    .append("totalAmount",((TLMessageActionPaymentSentMe) ama).getTotalAmount())
+                    .append("currency", ((TLMessageActionPaymentSentMe) ama).getCurrency())
+                    .append("ShippingOptionId",((TLMessageActionPaymentSentMe) ama).getShippingOptionId())
+                    .append("payload",((TLMessageActionPaymentSentMe) ama).getPayload().getData())
+                    .append("charge", tlPaymentChargeToDocument(((TLMessageActionPaymentSentMe) ama).getCharge()))
+                    .append("info",tlPaymentRequestedInfoToDocument(((TLMessageActionPaymentSentMe) ama).getInfo()));
+        } else if (ama instanceof TLMessageActionPhoneCall){
+            return new Document("class", "MessageAction")
+                    .append("callId",((TLMessageActionPhoneCall) ama).getCallId())
+                    .append("duration",((TLMessageActionPhoneCall) ama).getDuration())
+                    .append("flags",((TLMessageActionPhoneCall) ama).getFlags())
+                    .append("reason", tlAbsPhoneCallDiscardReasonToDocument(((TLMessageActionPhoneCall) ama).getReason()));
+        } else if (ama instanceof TLMessageActionPinMessage){
+            return new Document("class", "MessageAction");
+        } else{
+            return null;
+        }
+    }
+
+    /**
+     * converts int vector to list
+     * @param iv int vector
+     */
+    private static List<Integer> tlIntVectorToList(TLIntVector iv){
+        List<Integer> list = new ArrayList<>();
+        if ((!iv.isEmpty()) && (iv != null)) {
+            for (Integer i : iv) {
+                list.add(i);
+            }
+        }
+        return list;
+    }
+
+    /**
+     * converts payment charge to document
+     * @param pc payment charge
+     */
+    private static Document tlPaymentChargeToDocument(TLPaymentCharge pc){
+        return new Document("class", "PaymentCharge")
+                .append("_id",pc.getId())
+                .append("providerChargeId", pc.getProviderChargeId());
+    }
+
+    /**
+     * converts pri to document
+     * @param pri payment info
+     */
+    private static Document tlPaymentRequestedInfoToDocument(TLPaymentRequestedInfo pri){
+        return new Document("class", "PaymentRequestedInfo")
+                .append("email", pri.getEmail())
+                .append("name", pri.getName())
+                .append("phone", pri.getPhone())
+                .append("shippingAddress", tlPostAddressToDocument(pri.getShippingAddress()));
+    }
+
+    /**
+     * converts post address to document
+     * @param pa post address
+     */
+    private static Document tlPostAddressToDocument(TLPostAddress pa){
+        return new Document("class", "PostAddress")
+                .append("city", pa.getCity())
+                .append("countryIso2", pa.getCountryIso2())
+                .append("postCode", pa.getPostCode())
+                .append("state", pa.getState())
+                .append("streetLine1", pa.getStreetLine1())
+                .append("streetLine2", pa.getStreetLine2());
+    }
+
+    private static Document tlAbsPhoneCallDiscardReasonToDocument(TLAbsPhoneCallDiscardReason apcdr){
+        if (apcdr instanceof TLPhoneCallDiscardReasonBusy){
+            return new Document("class", "PhoneCallDiscardReasonBusy");
+        } else if (apcdr instanceof TLPhoneCallDiscardReasonDisconnect){
+            return new Document("class", "PhoneCallDiscardReasonDisconnect");
+        } else if (apcdr instanceof TLPhoneCallDiscardReasonHangup){
+            return new Document("class", "PhoneCallDiscardReasonHangup");
+        } else if (apcdr instanceof TLPhoneCallDiscardReasonMissed){
+            return new Document("class", "PhoneCallDiscardReasonMissed");
+        } else {
+            return null;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////

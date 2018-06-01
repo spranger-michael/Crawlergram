@@ -32,7 +32,7 @@ public class MessagesAndMediaToDB {
      * @param   parLimit   maximum number of retrieved participants from each dialog (0 if all)
      * @param   filter  participants filter: 0 - recent, 1 - admins, 2 - kicked, 3 - bots, default - recent
      */
-    public static void saveMessagesOnlyToDB(TelegramApi api, DBStorage dbStorage, TLVector<TLDialog> dialogs,
+    public static void saveOnlyMessagesToDB(TelegramApi api, DBStorage dbStorage, TLVector<TLDialog> dialogs,
                                             HashMap<Integer, TLAbsChat> chatsHashMap,
                                             HashMap<Integer, TLAbsUser> usersHashMap,
                                             HashMap<Integer, TLAbsMessage> messagesHashMap,
@@ -53,10 +53,6 @@ public class MessagesAndMediaToDB {
             // writes messages of the dialog to "messages + [dialog_id]" table/collection/etc.
             dbStorage.writeTLAbsMessages(absMessages, dialog);
             System.err.println(dialog.getPeer().getId()+ " "+ absMessages.size());
-            /*
-            // write messages
-            dbStorage.writeTLAbsMessages(absMessages);
-            */
 
             // sleep between transmissions to avoid flood wait
             try {Thread.sleep(1000);} catch (InterruptedException ignored) {}
