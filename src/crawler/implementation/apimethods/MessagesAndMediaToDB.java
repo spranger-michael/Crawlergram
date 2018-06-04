@@ -36,7 +36,7 @@ public class MessagesAndMediaToDB {
                                             HashMap<Integer, TLAbsChat> chatsHashMap,
                                             HashMap<Integer, TLAbsUser> usersHashMap,
                                             HashMap<Integer, TLAbsMessage> messagesHashMap,
-                                            int msgLimit, int parLimit, int filter) {
+                                            int msgLimit, int parLimit, int filter, int maxDate, int minDate) {
         //TODO
 
         for (TLDialog dialog : dialogs) {
@@ -54,11 +54,12 @@ public class MessagesAndMediaToDB {
             dbStorage.writeParticipants(participants, dialog);
 
             //reads the messages
+            TLAbsMessage topMessage = DialogsHistoryMethods.getTopMessage(dialog, messagesHashMap);
             TLVector<TLAbsMessage> absMessages;
             if (exclusions.exist()){
-                absMessages = DialogsHistoryMethods.getWholeMessagesHistoryWithExclusions(api, dialog, chatsHashMap, usersHashMap, messagesHashMap, exclusions, msgLimit);
+                absMessages = DialogsHistoryMethods.getWholeMessagesHistoryWithExclusions(api, dialog, chatsHashMap, usersHashMap, topMessage, exclusions, msgLimit, maxDate, minDate);
             } else {
-                absMessages = DialogsHistoryMethods.getWholeMessagesHistory(api, dialog, chatsHashMap, usersHashMap, messagesHashMap, msgLimit);
+                absMessages = DialogsHistoryMethods.getWholeMessagesHistory(api, dialog, chatsHashMap, usersHashMap, topMessage, msgLimit, maxDate, minDate);
             }
             // writes messages of the dialog to "messages + [dialog_id]" table/collection/etc.
             dbStorage.writeTLAbsMessages(absMessages, dialog);
@@ -70,34 +71,6 @@ public class MessagesAndMediaToDB {
         // write hashmaps
         dbStorage.writeUsersHashMap(usersHashMap);
         dbStorage.writeChatsHashMap(chatsHashMap);
-    }
-
-
-    public static void saveMessagesAndMediaToDB(TelegramApi api,
-                                                DBStorage dbStorage,
-                                                TLVector<TLDialog> dialogs,
-                                                HashMap<Integer, TLAbsChat> chatsHashMap,
-                                                HashMap<Integer, TLAbsUser> usersHashMap,
-                                                HashMap<Integer, TLAbsMessage> messagesHashMap,
-                                                int limit) {
-        for (TLDialog dialog : dialogs) {
-            // make actions upon each message in loop
-            TLVector<TLAbsMessage> absMessages = DialogsHistoryMethods.getWholeMessagesHistory(api, dialog, chatsHashMap, usersHashMap, messagesHashMap, limit);
-            for (TLAbsMessage absMessage : absMessages) {
-
-                //TODO redo downloads
-
-                // write the absMessage content in console
-                //ConsoleOutputMethods.testMessageOutputConsole(absMessage);
-                // save absMessage media to file
-                //messageDownloadMedia(api, absMessage, path);
-            }
-
-            System.err.println(dialog.getPeer().getId()+ " "+ absMessages.size());
-
-            // sleep between transmissions to avoid flood wait
-            try {Thread.sleep(1000);} catch (InterruptedException ignored) {}
-        }
     }
 
 

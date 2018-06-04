@@ -4,12 +4,6 @@
  * Creator: Georgii Mikriukov
  */
 
-/*
- * Title: DBStorage.java
- * Project: telegramJ
- * Creator: Georgii Mikriukov
- */
-
 package crawler.db;
 
 import org.telegram.api.chat.TLAbsChat;
@@ -87,12 +81,17 @@ public interface DBStorage {
     Integer getMessageMaxId(TLDialog dialog);
 
     /**
-     * min id of the message from a particular chat (for offset)
+     * min id of the message from a particular chat
      */
     Integer getMessageMinId(TLDialog dialog);
 
     /**
-     * date of min id message from a particular chat (for offset)
+     * date of min id message from a particular chat
      */
     Integer getMessageMinIdDate(TLDialog dialog);
+
+    /**
+     * date of max id message from a particular chat
+     */
+    Integer getMessageMaxIdDate(TLDialog dialog);
 }

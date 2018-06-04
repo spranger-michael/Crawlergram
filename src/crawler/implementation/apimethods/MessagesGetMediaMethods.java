@@ -58,10 +58,10 @@ public class MessagesGetMediaMethods {
                                                     HashMap<Integer, TLAbsChat> chatsHashMap,
                                                     HashMap<Integer, TLAbsUser> usersHashMap,
                                                     HashMap<Integer, TLAbsMessage> messagesHashMap,
-                                                    int limit, String path) {
+                                                    int limit, String path, int maxDate, int minDate) {
         for (TLDialog dialog : dialogs) {
             // make actions upon each message in loop
-            TLVector<TLAbsMessage> messages = DialogsHistoryMethods.getWholeMessagesHistory(api, dialog, chatsHashMap, usersHashMap, messagesHashMap, limit);
+            TLVector<TLAbsMessage> messages = DialogsHistoryMethods.getWholeMessagesHistory(api, dialog, chatsHashMap, usersHashMap, messagesHashMap, limit, maxDate, minDate);
             for (TLAbsMessage message : messages) {
                 // write the message content in console
                 ConsoleOutputMethods.testMessageOutputConsole(message);

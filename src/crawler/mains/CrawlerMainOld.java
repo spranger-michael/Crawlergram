@@ -89,7 +89,7 @@ public class CrawlerMainOld {
          * This line saves media and outputs messages in console:
          *     MessagesGetMediaMethods.saveMediaFromDialogsMessages(apimethods, dialogs, chatsHashMap, usersHashMap, messagesLimit, "downloaded docs");
          */
-        MessagesGetMediaMethods.saveMediaFromDialogsMessages(api, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, "media");
+        MessagesGetMediaMethods.saveMediaFromDialogsMessages(api, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, "media", 0, 0);
 
         /**
          * This line gets all the messages and saves them to the docs hashtable (empty docs are not saved, but used for calculations):

@@ -4,33 +4,57 @@
  * Creator: Georgii Mikriukov
  */
 
-/*
- * Title: MessageHistoryExclusions.java
- * Project: telegramJ
- * Creator: Georgii Mikriukov
- */
-
 package crawler.db;
 
-import crawler.db.DBStorage;
 import org.telegram.api.dialog.TLDialog;
 
 public class MessageHistoryExclusions {
 
-    Integer minId; // min msg id in db
-    Integer maxId; // max msg id in db
-    Integer offDate; // new offset date (corresponds to min)
-    Integer offId; // new offset id (minId)
+    private Integer minId; // min msg id in db
+    private Integer maxId; // max msg id in db
+    private Integer maxDate; // max date
+    private Integer minDate; // min date
 
     public MessageHistoryExclusions(DBStorage dbStorage, TLDialog dialog){
         this.minId = dbStorage.getMessageMinId(dialog);
-        this.offId = this.minId;
+        this.minDate = dbStorage.getMessageMaxIdDate(dialog);
         this.maxId = dbStorage.getMessageMaxId(dialog);
-        this.offDate = dbStorage.getMessageMinIdDate(dialog);
+        this.maxDate = dbStorage.getMessageMinIdDate(dialog);
     }
 
     public boolean exist(){
-        return ((this.maxId != null) && (this.minId != null) && (this.offDate != null) && (this.offId != null));
+        return ((this.maxId != null) && (this.minId != null) && (this.maxDate != null) && (this.minDate != null));
     }
 
+    public Integer getMinId() {
+        return minId;
+    }
+
+    public void setMinId(Integer minId) {
+        this.minId = minId;
+    }
+
+    public Integer getMaxId() {
+        return maxId;
+    }
+
+    public void setMaxId(Integer maxId) {
+        this.maxId = maxId;
+    }
+
+    public Integer getMaxDate() {
+        return maxDate;
+    }
+
+    public void setMaxDate(Integer maxDate) {
+        this.maxDate = maxDate;
+    }
+
+    public Integer getMinDate() {
+        return minDate;
+    }
+
+    public void setMinDate(Integer minDate) {
+        this.minDate = minDate;
+    }
 }

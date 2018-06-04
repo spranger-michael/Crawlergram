@@ -371,7 +371,7 @@ public class MongoDBStorage implements DBStorage {
     @Override
     public void writeTLAbsMessages(TLVector<TLAbsMessage> absMessages, TLDialog dialog) {
         this.setTarget(Constants.MSG_DIAL_PREF + dialog.getPeer().getId());
-        if (!absMessages.isEmpty()){
+        if ((absMessages != null) && (!absMessages.isEmpty())){
             try {
                 for (TLAbsMessage absMessage : absMessages) {
                     writeTLAbsMessage(absMessage);
@@ -424,6 +424,22 @@ public class MongoDBStorage implements DBStorage {
             FindIterable<Document> findMin = collection.find().sort(Sorts.ascending("_id")).limit(1);
             Document docMin = findMin.first();
             return docMin != null ? (Integer) docMin.get("date") : null;
+        } catch (MongoException e) {
+            System.err.println(e.getCode() + " " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * date of max id message from a particular chat (for offset)
+     */
+    @Override
+    public Integer getMessageMaxIdDate(TLDialog dialog) {
+        try {
+            this.setTarget(Constants.MSG_DIAL_PREF + dialog.getPeer().getId());
+            FindIterable<Document> findMax = collection.find().sort(Sorts.descending("_id")).limit(1);
+            Document docMax = findMax.first();
+            return docMax != null ? (Integer) docMax.get("date") : null;
         } catch (MongoException e) {
             System.err.println(e.getCode() + " " + e.getMessage());
             return null;
