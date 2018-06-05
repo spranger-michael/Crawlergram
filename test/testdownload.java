@@ -78,12 +78,12 @@ public class testdownload {
 
             int parLimit = 10;
             int filter = 0;
-            int msgLimit = 1000;
+            int msgLimit = 100;
 
             TLDialog dialog = new TLDialog();
 
             for (TLDialog d: dialogs){
-                if (d.getPeer().getId() == 1009232144){ //415770675
+                if (d.getPeer().getId() == 415770675){ //415770675
                     dialog = d;
                 }
             }

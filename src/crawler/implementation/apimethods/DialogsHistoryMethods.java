@@ -796,60 +796,60 @@ public class DialogsHistoryMethods {
                                                                                TLAbsMessage topMessage,
                                                                                MessageHistoryExclusions exclusions,
                                                                                int limit, int maxDate, int minDate) {
-        //TODO
-        TLVector<TLAbsMessage> messages = getWholeMessagesHistory(api,dialog,chatsHashMap, usersHashMap, topMessage, limit, maxDate, minDate);
-
-        return null;
-
-    }
-
-    private static int checkOffsetIdExclusions(Integer offId, MessageHistoryExclusions exclusions){
-        if ((offId <= exclusions.getMaxId()) && (offId > exclusions.getMinId())){
-            offId = exclusions.getMinId();
+        TLVector<TLAbsMessage> messages = new TLVector<>();
+        // part 1
+        TLVector<TLAbsMessage> messages1 = new TLVector<>();
+        // part 2
+        TLVector<TLAbsMessage> messages2 = new TLVector<>();
+        if (maxDate <= 0) {
+            maxDate = Integer.MAX_VALUE;
         }
-        return offId;
-    }
-
-    private static int checkOffsetDateExclusions(Integer offId, Integer offDate, MessageHistoryExclusions exclusions){
-        if ((offId <= exclusions.getMaxId()) && (offId > exclusions.getMinId())){
-            offDate = exclusions.getMaxDate();
+        if (maxDate > exclusions.getMaxDate()){
+            // part 1 (from maxDate to exclusions max)
+            messages1 = getWholeMessagesHistory(api,dialog,chatsHashMap, usersHashMap, topMessage, limit, maxDate, exclusions.getMaxDate());
+            messages1 = removeExistingMessages(messages1, exclusions.getMinId(), exclusions.getMaxId());
         }
-        return offDate;
+        if (messages1.size() < limit) {
+            // part 2 (exclusions min to min Date)
+            TLAbsMessage newTopMsg = SetTLObjectsMethods.absMessageSetForOffsets(exclusions.getMinId(), exclusions.getMinDate());
+            if (exclusions.getMinDate() > minDate){
+                messages2 = getWholeMessagesHistory(api,dialog,chatsHashMap, usersHashMap, newTopMsg, limit, exclusions.getMinDate(), minDate);
+                messages2 = removeExistingMessages(messages2, exclusions.getMinId(), exclusions.getMaxId());
+            }
+            messages = combineMessagesParts(messages1, messages2);
+        }
+        messages = removeExtraMessages(messages, limit);
+        return messages;
     }
 
     /**
-     * Writes only non-empty messages to 1st array from 2nd one
-     * @param messages output array (only users' messages)
-     * @param absMessagesVector input array (all messages)
-     * @param messageIdSet set of unique message IDs (to exclude duplications when overlapping arrays are being merged)
-     * @param exclusions exclusions (only non existing in DB messages are being considered)
+     * Combines 2 vectors of messages into one
+     * @param messages1 1
+     * @param messages2 2
      */
-    private static void getNonEmptyMessagesFromHistoryWithExclusions(TLVector<TLAbsMessage> messages,
-                                                                     TLVector<TLAbsMessage> absMessagesVector,
-                                                                     Set<Integer> messageIdSet,
-                                                                     MessageHistoryExclusions exclusions) {
-        for (TLAbsMessage absMessage: absMessagesVector){
-            // message should not be TLMessageEmpty (-> TLMessage or TLMessageService)
-            if (!(absMessage instanceof TLMessageEmpty)){
-                if (absMessage instanceof TLMessage){
-                    if ((((TLMessage) absMessage).getId() >= exclusions.getMaxId()) || (((TLMessage) absMessage).getId() < exclusions.getMinId())){
-                        if (!(messageIdSet.contains(((TLMessage) absMessage).getId()))){
-                            messages.add(absMessage);
-                            messageIdSet.add(((TLMessage) absMessage).getId());
-                        }
-                    }
-                } else if (absMessage instanceof TLMessageService){
-                    if ((((TLMessageService) absMessage).getId() >= exclusions.getMaxId()) || (((TLMessageService) absMessage).getId() < exclusions.getMinId())) {
-                        if (!(messageIdSet.contains(((TLMessageService) absMessage).getId()))) {
-                            messages.add(absMessage);
-                            messageIdSet.add(((TLMessageService) absMessage).getId());
-                        }
-                    }
-                }
-            }
-
-        }
+    private static TLVector<TLAbsMessage> combineMessagesParts(TLVector<TLAbsMessage> messages1, TLVector<TLAbsMessage> messages2){
+        TLVector<TLAbsMessage> messages = new TLVector<>();
+        messages.addAll(messages1);
+        messages.addAll(messages2);
+        return messages;
     }
 
+    private static TLVector<TLAbsMessage> removeExistingMessages(TLVector<TLAbsMessage> msgs, int idMin, int idMax){
+        for (int i = 0; i < msgs.size(); i++){
+            TLAbsMessage msg = msgs.get(i);
+            if (msg instanceof TLMessage){
+                if ((((TLMessage) msg).getId() <= idMax) && (((TLMessage) msg).getId() >= idMin)){
+                    msgs.remove(i);
+                    i--;
+                }
+            } else if (msg instanceof TLMessageService){
+                if ((((TLMessageService) msg).getId() <= idMax) && (((TLMessageService) msg).getId() <= idMin)){
+                    msgs.remove(i);
+                    i--;
+                }
+            }
+        }
+        return msgs;
+    }
 
 }

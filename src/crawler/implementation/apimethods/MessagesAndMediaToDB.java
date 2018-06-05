@@ -37,8 +37,6 @@ public class MessagesAndMediaToDB {
                                             HashMap<Integer, TLAbsUser> usersHashMap,
                                             HashMap<Integer, TLAbsMessage> messagesHashMap,
                                             int msgLimit, int parLimit, int filter, int maxDate, int minDate) {
-        //TODO
-
         for (TLDialog dialog : dialogs) {
 
             MessageHistoryExclusions exclusions = new MessageHistoryExclusions(dbStorage, dialog);

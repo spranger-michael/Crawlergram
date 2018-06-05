@@ -36,6 +36,8 @@ import org.telegram.api.input.user.TLAbsInputUser;
 import org.telegram.api.input.user.TLInputUser;
 import org.telegram.api.input.user.TLInputUserEmpty;
 import org.telegram.api.input.user.TLInputUserSelf;
+import org.telegram.api.message.TLAbsMessage;
+import org.telegram.api.message.TLMessage;
 import org.telegram.api.peer.TLAbsPeer;
 import org.telegram.api.peer.TLPeerChannel;
 import org.telegram.api.peer.TLPeerChat;
@@ -495,6 +497,18 @@ public class SetTLObjectsMethods {
         getParticipants.setLimit(200); // Telegram returns 200 users at max
         getParticipants.setFilter(filter);
         return getParticipants;
+    }
+
+    /**
+     * sets TLMessage id and date. used for offssets
+     * @param id id
+     * @param date date
+     */
+    public static TLAbsMessage absMessageSetForOffsets(int id, int date){
+        TLMessage msg = new TLMessage();
+        msg.setId(id);
+        msg.setDate(date);
+        return msg;
     }
 
 }
