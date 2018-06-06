@@ -6,11 +6,17 @@
 
 package crawler.output.files;
 
+import org.telegram.api.file.location.TLFileLocation;
+import org.telegram.api.photo.size.TLAbsPhotoSize;
+import org.telegram.api.photo.size.TLPhotoSize;
+import org.telegram.tl.TLVector;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-public class FilesMethods {
+public class FileMethods {
 
     /**
      * Checks if the file and path to file exist. If not - creates them.
@@ -84,8 +90,56 @@ public class FilesMethods {
         } else if (size <= 1572864000){ //1500 MB
             return 512;
         } else {
-            return null; // file is too big
+            return 64;
         }
+    }
+
+    /**
+     * concatenates two byte arrays
+     * @param a array
+     * @param b array
+     */
+    public static byte[] concatenateByteArrays(byte[] a, byte[] b) {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        try {
+            if (a != null){output.write(a);}
+            if (b != null){output.write(b);}
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return output.toByteArray();
+    }
+
+    /**
+     * gets the location of the largest (and last one in the list) accessible photo
+     * @param apss abs photo size
+     * @return doc
+     */
+    public static TLPhotoSize getLargestAvailablePhotoSize(TLVector<TLAbsPhotoSize> apss){
+        // getting the last and largest TLPhotoSize
+        TLPhotoSize aps = null;
+        for (int i = apss.size()-1; i >= 0; i--){
+            if (sizeAvailable(apss.get(i))){
+                aps = (TLPhotoSize) apss.get(i);
+                break;
+            }
+        }
+        return aps;
+    }
+
+    /**
+     * checks if file location available
+     * @param aps
+     * @return
+     */
+    private static boolean sizeAvailable(TLAbsPhotoSize aps){
+        boolean f = false;
+        if (aps instanceof TLPhotoSize){
+            if (((TLPhotoSize) aps).getLocation() instanceof TLFileLocation){
+                f = true;
+            }
+        }
+        return f;
     }
 
 }

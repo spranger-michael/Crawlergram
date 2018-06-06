@@ -7,7 +7,7 @@
 package crawler.implementation.apimethods;
 
 import crawler.output.console.ConsoleOutputMethods;
-import crawler.output.files.FilesMethods;
+import crawler.output.files.FileMethods;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.dialog.TLDialog;
 import org.telegram.api.document.TLAbsDocument;
@@ -149,7 +149,7 @@ public class MessagesGetMediaMethods {
             int fileDc = doc.getDcId();
             try {
                 // calculate optimal part size
-                Integer partSize = FilesMethods.getFilePartSize(doc.getSize());
+                Integer partSize = FileMethods.getFilePartSize(doc.getSize());
                 if (!partSize.equals(null)){
                     partSize *= 1024; // set size from KB to bytes
                     int offset = 0;
@@ -160,7 +160,7 @@ public class MessagesGetMediaMethods {
                         // append bytes to file
                         if (absFile instanceof TLFile){
                             TLFile file = (TLFile) absFile;
-                            FilesMethods.appendBytesToFile(filename, file.getBytes().getData());
+                            FileMethods.appendBytesToFile(filename, file.getBytes().getData());
                         }
                         offset += partSize;
                     }
@@ -288,7 +288,7 @@ public class MessagesGetMediaMethods {
             TLInputFileLocation inputFileLoc = SetTLObjectsMethods.inputFileLocationSet(fileLoc.getLocalId(), fileLoc.getSecret(), fileLoc.getVolumeId());
             try {
                 // calculate optimal part size
-                Integer partSize = FilesMethods.getFilePartSize(photoSize.getSize());
+                Integer partSize = FileMethods.getFilePartSize(photoSize.getSize());
                 if (!partSize.equals(null)){
                     partSize *= 1024; // set size from KB to bytes
                     int offset = 0;
@@ -300,7 +300,7 @@ public class MessagesGetMediaMethods {
                         if (absFile instanceof TLFile){
                             TLFile file = (TLFile) absFile;
                             String filename = path + File.separator + "img" + File.separator + String.valueOf(photo.getId()) + photoSize.getType()+ ".jpg";
-                            FilesMethods.appendBytesToFile(filename, file.getBytes().getData());
+                            FileMethods.appendBytesToFile(filename, file.getBytes().getData());
                         }
                         offset += partSize;
                     }
@@ -326,7 +326,7 @@ public class MessagesGetMediaMethods {
     private static void messagePhotoSizeCachedOutput(TLPhotoCachedSize photoSizeCached, TLPhoto photo, String path){
         System.out.println("PHOTO CACHED: " + photo.getId() + " " + photoSizeCached.getType() + " " + photoSizeCached.getBytes().getLength());
         String filename = path + File.separator + "img" + File.separator + String.valueOf(photo.getId()) + photoSizeCached.getType()+ "." + "jpg";
-        FilesMethods.writeBytesToFile(filename, photoSizeCached.getBytes().getData());
+        FileMethods.writeBytesToFile(filename, photoSizeCached.getBytes().getData());
     }
 
     /**

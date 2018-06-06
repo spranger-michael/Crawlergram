@@ -6,7 +6,7 @@
 
 package crawler.implementation.structures;
 
-import crawler.output.files.FilesMethods;
+import crawler.output.files.FileMethods;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.message.TLAbsMessage;
 import org.telegram.api.message.TLMessage;
@@ -153,7 +153,7 @@ public class DataStructuresMethods {
         // create file for output
         for (Integer keyD : keysDialogs) {
             String filename = path + File.separator + "docs_" + dateFormat.format(date) + keyD + ".csv";
-            FilesMethods.checkFilePath(filename);
+            FileMethods.checkFilePath(filename);
             //write docs data to files
             try {
                 Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "UTF-8"));

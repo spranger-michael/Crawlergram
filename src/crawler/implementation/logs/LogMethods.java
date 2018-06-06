@@ -6,7 +6,7 @@
 
 package crawler.implementation.logs;
 
-import crawler.output.files.FilesMethods;
+import crawler.output.files.FileMethods;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -25,8 +25,8 @@ public class LogMethods {
         Date date = new Date();
         String logfilePathApi = path + File.separator + "apiLog_" + dateFormat.format(date) + ".log";
         String logfilePathMTProto = path + File.separator + "MTProtoLog_" + dateFormat.format(date) + ".log";
-        FilesMethods.checkFilePath(logfilePathApi);
-        FilesMethods.checkFilePath(logfilePathMTProto);
+        FileMethods.checkFilePath(logfilePathApi);
+        FileMethods.checkFilePath(logfilePathMTProto);
         // init logs
         org.telegram.mtproto.log.Logger.registerInterface(new MTProtoLoggerInterfaceImplemented(logfilePathMTProto));
         org.telegram.api.engine.Logger.registerInterface(new ApiLoggerInterfaceImplemented(logfilePathApi));

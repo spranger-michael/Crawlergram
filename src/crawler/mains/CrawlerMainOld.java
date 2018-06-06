@@ -17,7 +17,7 @@ import crawler.implementation.apimethods.*;
 import crawler.implementation.structures.DataStructuresMethods;
 import crawler.output.console.ConsoleOutputMethods;
 import crawler.implementation.structures.MessageDoc;
-import crawler.output.files.FilesMethods;
+import crawler.output.files.FileMethods;
 import crawler.implementation.logs.MTProtoLoggerInterfaceImplemented;
 import crawler.implementation.logs.ApiLoggerInterfaceImplemented;
 import org.telegram.api.chat.TLAbsChat;
@@ -48,8 +48,8 @@ public class CrawlerMainOld {
         Date date = new Date();
         String logfilePathApi = "logs" + File.separator + "apiLog_" + dateFormat.format(date) + ".log";
         String logfilePathMTProto = "logs" + File.separator + "MTProtoLog_" + dateFormat.format(date) + ".log";
-        FilesMethods.checkFilePath(logfilePathApi);
-        FilesMethods.checkFilePath(logfilePathMTProto);
+        FileMethods.checkFilePath(logfilePathApi);
+        FileMethods.checkFilePath(logfilePathMTProto);
         // init logs
         org.telegram.mtproto.log.Logger.registerInterface(new MTProtoLoggerInterfaceImplemented(logfilePathMTProto));
         org.telegram.api.engine.Logger.registerInterface(new ApiLoggerInterfaceImplemented(logfilePathApi));

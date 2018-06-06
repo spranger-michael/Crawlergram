@@ -982,7 +982,6 @@ public class MongoDBStorage implements DBStorage {
 
     /**
      * converts doc attrs to name of the doc
-     * @return
      */
     private static String tlAbsDocumentAttributesToName(TLVector<TLAbsDocumentAttribute> adas, TLDocument doc) {
         String name = "";
