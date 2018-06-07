@@ -34,6 +34,29 @@ import java.util.concurrent.TimeoutException;
 public class MediaDownloadMethods {
 
     /**
+     * Gets the file name and bytes, saves to HDD, in case of success returns the resulting filepath
+     * @param api api
+     * @param absMessage message
+     * @param maxSize max size of medial to be saved
+     */
+    public static String messageDownloadMediaToHDD(TelegramApi api, TLAbsMessage absMessage, int maxSize, String path) {
+        String out = null;
+        if (absMessage instanceof TLMessage) {
+            if (((TLMessage) absMessage).hasMedia()) {
+                byte[] bytes = messageGetMediaBytes(api, (TLMessage) absMessage, maxSize);
+                String name = getFileName((TLMessage) absMessage);
+                if ((name != null) && (bytes != null)){
+                    String filePath = FileMethods.setFileNameAndPath(name, path);
+                    FileMethods.writeBytesToFile(filePath, bytes);
+                    out = filePath;
+                }
+                System.err.println(((TLMessage) absMessage).getId()+" "+bytes.length + " " + name);
+            }
+        }
+        return out;
+    }
+
+    /**
      * Gets the file name and bytes
      * @param api api
      * @param absMessage message
@@ -62,9 +85,9 @@ public class MediaDownloadMethods {
         // check for media
         TLAbsMessageMedia absMedia = message.getMedia();
         if (absMedia instanceof TLMessageMediaDocument) {
-            output = messageMediaDocumentOutput(api, (TLMessageMediaDocument) absMedia, maxSize);
+            output = messageMediaDocumentGet(api, (TLMessageMediaDocument) absMedia, maxSize);
         } else if (absMedia instanceof TLMessageMediaPhoto) {
-            output = messageMediaPhotoOutput(api, (TLMessageMediaPhoto) absMedia, maxSize);
+            output = messageMediaPhotoGet(api, (TLMessageMediaPhoto) absMedia, maxSize);
         }
         return output;
     }
@@ -75,7 +98,7 @@ public class MediaDownloadMethods {
      * @param	mediaDocument document media
      * @see	TLMessageMediaDocument
      */
-    private static byte[] messageMediaDocumentOutput(TelegramApi api, TLMessageMediaDocument mediaDocument, int maxSize){
+    private static byte[] messageMediaDocumentGet(TelegramApi api, TLMessageMediaDocument mediaDocument, int maxSize){
         TLAbsDocument absDoc = mediaDocument.getDocument();
         byte[] bytes = null;
 
@@ -95,7 +118,7 @@ public class MediaDownloadMethods {
      * @param maxSize max size for downloading
      * @return
      */
-    private static byte[] messageMediaPhotoOutput(TelegramApi api, TLMessageMediaPhoto mediaPhoto, int maxSize){
+    private static byte[] messageMediaPhotoGet(TelegramApi api, TLMessageMediaPhoto mediaPhoto, int maxSize){
         byte[] bytes = null;
 
         TLAbsPhoto absPhoto = mediaPhoto.getPhoto();
@@ -204,13 +227,13 @@ public class MediaDownloadMethods {
                 name = message.getChatId() + "_" + message.getId() + "_" + doc.getId() + "_" + doc.getDate();
                 for (TLAbsDocumentAttribute attr : docAttr) {
                     if (attr instanceof TLDocumentAttributeAudio) {
-                        return name + "_audio.ogg"; // audio message
+                        return name + ".ogg"; // audio message
                     } else if (attr instanceof TLDocumentAttributeVideo) {
-                        return name + "_video.mp4"; // video message
+                        return name + ".mp4"; // video message
                     } else if (attr instanceof TLDocumentAttributeAnimated) {
-                        return name + "_anim.gif"; // gif
+                        return name + ".gif"; // gif
                     } else if (attr instanceof TLDocumentAttributeSticker) {
-                        return name + "_sticker.webp"; // sticker
+                        return name + ".webp"; // sticker
                     }
                 }
             }

@@ -76,22 +76,40 @@ public interface DBStorage {
     void writeTLAbsMessages(TLVector<TLAbsMessage> absMessages, TLDialog dialog);
 
     /**
+     * Writes messages from dialogs to DB (each dialog to a single collection) with reference to the saved file
+     * @param absMessage
+     * @param filePath
+     */
+    void writeTLAbsMessageWithReference(TLAbsMessage absMessage, String filePath);
+
+    /**
      * max id of the message from a particular chat
+     * @param dialog
      */
     Integer getMessageMaxId(TLDialog dialog);
 
     /**
      * min id of the message from a particular chat
+     * @param dialog
      */
     Integer getMessageMinId(TLDialog dialog);
 
     /**
      * date of min id message from a particular chat
+     * @param dialog
      */
     Integer getMessageMinIdDate(TLDialog dialog);
 
     /**
      * date of max id message from a particular chat
+     * @param dialog
      */
     Integer getMessageMaxIdDate(TLDialog dialog);
+
+    /**
+     * writes bytes to GridFS
+     * @param name
+     * @param bytes
+     */
+    void writeFile(String name, byte[] bytes);
 }

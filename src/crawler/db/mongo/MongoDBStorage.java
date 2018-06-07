@@ -15,6 +15,7 @@ import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
 import crawler.db.Constants;
 import crawler.db.DBStorage;
+import crawler.implementation.apimethods.MediaDownloadMethods;
 import crawler.implementation.structures.MessageDoc;
 import org.bson.Document;
 
@@ -383,6 +384,24 @@ public class MongoDBStorage implements DBStorage {
     }
 
     /**
+     * Write messages to DB
+     * @param absMessage messages
+     * @param filePath path to the downloaded (reference)
+     */
+    @Override
+    public void writeTLAbsMessageWithReference(TLAbsMessage absMessage, String filePath) {
+        if (absMessage instanceof TLMessage){
+            this.write(tlMessageToDocumentWithReference((TLMessage) absMessage, filePath));
+        } else if (absMessage instanceof TLMessageService){
+            this.write(tlMessageServiceToDocument((TLMessageService) absMessage));
+        } else if (absMessage instanceof TLMessageEmpty){
+            this.write(new Document("class","MessageEmpty")
+                    .append("_id",((TLMessageEmpty) absMessage).getId())
+                    .append("chatId", absMessage.getChatId()));
+        }
+    }
+
+    /**
      * max id of the message from a particular chat
      */
     @Override
@@ -444,6 +463,16 @@ public class MongoDBStorage implements DBStorage {
             System.err.println(e.getCode() + " " + e.getMessage());
             return null;
         }
+    }
+
+    /**
+     * writes bytes to GridFS
+     * @param name
+     * @param bytes
+     */
+    @Override
+    public void writeFile(String name, byte[] bytes) {
+        //TODO somewhen later
     }
 
     /**
@@ -837,6 +866,27 @@ public class MongoDBStorage implements DBStorage {
                 .append("media", tlAbsMessageMediaToDocument(m.getMedia()))
                 .append("views", m.getViews())
                 .append("editDate", m.getEditDate());
+    }
+
+    /**
+     * converts message to document with reference
+     * @param m message
+     */
+    private static Document tlMessageToDocumentWithReference(TLMessage m, String filePath){
+        return new Document("_id", m.getId())
+                .append("class", "Message")
+                .append("flags", m.getFlags())
+                .append("fromId", m.getFromId())
+                .append("toId", tlAbsPeerToDocument(m.getToId()))
+                .append("fwdFrom", tlMsgFwdHeaderToDocument(m.getFwdFrom()))
+                .append("viaBotId", m.getViaBotId())
+                .append("replyToMsgId", m.getReplyToMsgId())
+                .append("date", m.getDate())
+                .append("message", m.getMessage())
+                .append("media", tlAbsMessageMediaToDocument(m.getMedia()))
+                .append("views", m.getViews())
+                .append("editDate", m.getEditDate())
+                .append("mediaReference", filePath);
     }
 
     /**

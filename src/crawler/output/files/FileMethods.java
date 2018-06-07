@@ -142,4 +142,15 @@ public class FileMethods {
         return f;
     }
 
+    /**
+     * combines the path and the name of the file, creates the directory
+     * @param name name
+     * @param path path
+     */
+    public static String setFileNameAndPath(String name, String path){
+        String filePath = path + File.separator + name;
+        checkFilePath(filePath);
+        return filePath;
+    }
+
 }
