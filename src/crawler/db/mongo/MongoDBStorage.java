@@ -384,14 +384,13 @@ public class MongoDBStorage implements DBStorage {
     }
 
     /**
-     * Write messages to DB
-     * @param absMessage messages
-     * @param filePath path to the downloaded (reference)
+     * Write a single TLAbsMessage to DB
+     * @param absMessage
      */
     @Override
-    public void writeTLAbsMessageWithReference(TLAbsMessage absMessage, String filePath) {
+    public void writeTLAbsMessage(TLAbsMessage absMessage){
         if (absMessage instanceof TLMessage){
-            this.write(tlMessageToDocumentWithReference((TLMessage) absMessage, filePath));
+            this.write(tlMessageToDocument((TLMessage) absMessage));
         } else if (absMessage instanceof TLMessageService){
             this.write(tlMessageServiceToDocument((TLMessageService) absMessage));
         } else if (absMessage instanceof TLMessageEmpty){
@@ -399,6 +398,29 @@ public class MongoDBStorage implements DBStorage {
                     .append("_id",((TLMessageEmpty) absMessage).getId())
                     .append("chatId", absMessage.getChatId()));
         }
+    }
+
+    /**
+     * Write messages to DB
+     * @param absMessage messages
+     * @param filePath path to the downloaded (reference)
+     */
+    @Override
+    public void writeTLAbsMessageWithReference(TLAbsMessage absMessage, String filePath) {
+        int id = -1;
+        if (absMessage instanceof TLMessage){
+            this.write(tlMessageToDocumentWithReference((TLMessage) absMessage, filePath));
+            id = ((TLMessage) absMessage).getId();
+        } else if (absMessage instanceof TLMessageService){
+            this.write(tlMessageServiceToDocument((TLMessageService) absMessage));
+            id = ((TLMessageService) absMessage).getId();
+        } else if (absMessage instanceof TLMessageEmpty){
+            this.write(new Document("class","MessageEmpty")
+                    .append("_id",((TLMessageEmpty) absMessage).getId())
+                    .append("chatId", absMessage.getChatId()));
+            id = ((TLMessageEmpty) absMessage).getId();
+        }
+        System.out.println(id);
     }
 
     /**
@@ -473,22 +495,6 @@ public class MongoDBStorage implements DBStorage {
     @Override
     public void writeFile(String name, byte[] bytes) {
         //TODO somewhen later
-    }
-
-    /**
-     * Write a single TLAbsMessage to DB
-     * @param absMessage
-     */
-    private void writeTLAbsMessage(TLAbsMessage absMessage){
-        if (absMessage instanceof TLMessage){
-            this.write(tlMessageToDocument((TLMessage) absMessage));
-        } else if (absMessage instanceof TLMessageService){
-            this.write(tlMessageServiceToDocument((TLMessageService) absMessage));
-        } else if (absMessage instanceof TLMessageEmpty){
-            this.write(new Document("class","MessageEmpty")
-                    .append("_id",((TLMessageEmpty) absMessage).getId())
-                    .append("chatId", absMessage.getChatId()));
-        }
     }
 
     /**

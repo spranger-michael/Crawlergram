@@ -76,6 +76,12 @@ public interface DBStorage {
     void writeTLAbsMessages(TLVector<TLAbsMessage> absMessages, TLDialog dialog);
 
     /**
+     * Write a single TLAbsMessage to DB
+     * @param absMessage
+     */
+    void writeTLAbsMessage(TLAbsMessage absMessage);
+
+    /**
      * Writes messages from dialogs to DB (each dialog to a single collection) with reference to the saved file
      * @param absMessage
      * @param filePath

@@ -15,6 +15,7 @@ import crawler.db.mongo.MongoDBStorage;
 import crawler.implementation.apicallback.ApiCallbackImplemented;
 import crawler.implementation.apimethods.AuthMethods;
 import crawler.implementation.apimethods.DialogsHistoryMethods;
+import crawler.implementation.apimethods.MediaDownloadMethods;
 import crawler.implementation.apimethods.MessagesAndMediaToDB;
 import crawler.implementation.logs.LogMethods;
 import crawler.output.console.ConsoleOutputMethods;
@@ -86,9 +87,15 @@ public class CrawlerMain {
         int filter = 0; // participants filter: 0 - recent, 1 - admins, 2 - kicked, 3 - bots, default - recent
         int maxDate = 0; // min date of message (0 if no limit)
         int minDate = 0; // max date of message (0 if no limit)
+        int maxFileSize = 10485760; // 10 MB
+        String filesPath = "files";
 
-        //Saves messages and media and outputs messages in console:
-        MessagesAndMediaToDB.saveOnlyMessagesToDB(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter, maxDate, minDate);
+        //Saves messages to DB:
+        //MessagesAndMediaToDB.saveOnlyMessagesToDB(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter, maxDate, minDate);
+
+        //Saves messages to DB and media to HDD
+        MessagesAndMediaToDB.saveMessagesToDBFilesToHDD(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap,
+                messagesLimit, participantsLimit, filter, maxDate, minDate, maxFileSize, filesPath);
 
         //mongo.dbWriteMessageDocsHashMap(docsInDialogs);
 

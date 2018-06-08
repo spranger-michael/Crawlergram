@@ -6,6 +6,7 @@
 
 package crawler.implementation.apimethods;
 
+import crawler.db.Constants;
 import crawler.db.DBStorage;
 import crawler.db.MessageHistoryExclusions;
 import org.telegram.api.chat.TLAbsChat;
@@ -153,13 +154,19 @@ public class MessagesAndMediaToDB {
                 absMessages = DialogsHistoryMethods.getWholeMessagesHistory(api, dialog, chatsHashMap, usersHashMap, topMessage, msgLimit, maxDate, minDate);
             }
 
-            //TODO redo
-
+            System.err.println(dialog.getPeer().getId());
+            System.err.println(absMessages.size());
             // writes messages of the dialog to "messages + [dialog_id]" table/collection/etc.
-            dbStorage.writeTLAbsMessages(absMessages, dialog);
+            dbStorage.setTarget(Constants.MSG_DIAL_PREF + dialog.getPeer().getId());
+            for (TLAbsMessage absMessage: absMessages){
+                String reference = MediaDownloadMethods.messageDownloadMediaToHDD(api, absMessage, maxSize, path);
+                if (reference != null){
+                    dbStorage.writeTLAbsMessageWithReference(absMessage, reference);
+                } else {
+                    dbStorage.writeTLAbsMessage(absMessage);
+                }
+            }
 
-            // sleep between transmissions to avoid flood wait
-            try {Thread.sleep(1000);} catch (InterruptedException ignored) {}
         }
         // write hashmaps
         dbStorage.writeUsersHashMap(usersHashMap);

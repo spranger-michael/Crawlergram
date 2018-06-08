@@ -49,8 +49,8 @@ public class MediaDownloadMethods {
                     String filePath = FileMethods.setFileNameAndPath(name, path);
                     FileMethods.writeBytesToFile(filePath, bytes);
                     out = filePath;
+                    System.err.println(((TLMessage) absMessage).getId()+" "+bytes.length + " " + name);
                 }
-                System.err.println(((TLMessage) absMessage).getId()+" "+bytes.length + " " + name);
             }
         }
         return out;
