@@ -85,11 +85,11 @@ public class MessagesAndMediaToDB {
      * @param   maxDate max date of diapason for saving
      * @param   minDate min date of diapason for saving
      */
-    public static void saveOnlyMediaToDB(TelegramApi api, DBStorage dbStorage, TLVector<TLDialog> dialogs,
-                                            HashMap<Integer, TLAbsChat> chatsHashMap,
-                                            HashMap<Integer, TLAbsUser> usersHashMap,
-                                            HashMap<Integer, TLAbsMessage> messagesHashMap,
-                                            int msgLimit, int maxDate, int minDate, int maxSize, String path) {
+    public static void saveOnlyMediaToHDD(TelegramApi api, DBStorage dbStorage, TLVector<TLDialog> dialogs,
+                                          HashMap<Integer, TLAbsChat> chatsHashMap,
+                                          HashMap<Integer, TLAbsUser> usersHashMap,
+                                          HashMap<Integer, TLAbsMessage> messagesHashMap,
+                                          int msgLimit, int maxDate, int minDate, int maxSize, String path) {
         for (TLDialog dialog : dialogs) {
 
             MessageHistoryExclusions exclusions = new MessageHistoryExclusions(dbStorage, dialog);

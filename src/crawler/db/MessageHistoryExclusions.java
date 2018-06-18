@@ -17,9 +17,9 @@ public class MessageHistoryExclusions {
 
     public MessageHistoryExclusions(DBStorage dbStorage, TLDialog dialog){
         this.minId = dbStorage.getMessageMinId(dialog);
-        this.minDate = dbStorage.getMessageMaxIdDate(dialog);
+        this.minDate = dbStorage.getMessageMinIdDate(dialog);
         this.maxId = dbStorage.getMessageMaxId(dialog);
-        this.maxDate = dbStorage.getMessageMinIdDate(dialog);
+        this.maxDate = dbStorage.getMessageMaxIdDate(dialog);
     }
 
     public boolean exist(){

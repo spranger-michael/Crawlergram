@@ -796,6 +796,9 @@ public class DialogsHistoryMethods {
                                                                                TLAbsMessage topMessage,
                                                                                MessageHistoryExclusions exclusions,
                                                                                int limit, int maxDate, int minDate) {
+        if (limit <= 0) {
+            limit = Integer.MAX_VALUE;
+        }
         TLVector<TLAbsMessage> messages = new TLVector<>();
         // part 1
         TLVector<TLAbsMessage> messages1 = new TLVector<>();

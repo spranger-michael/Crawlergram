@@ -10,6 +10,7 @@ import com.mongodb.*;
 import com.mongodb.client.*;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
+import com.mongodb.client.gridfs.model.GridFSUploadOptions;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
@@ -19,12 +20,15 @@ import crawler.implementation.apimethods.MediaDownloadMethods;
 import crawler.implementation.structures.MessageDoc;
 import org.bson.Document;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
 import com.mongodb.client.model.Filters;
+import org.bson.types.ObjectId;
 import org.telegram.api.channel.TLChannelParticipants;
 import org.telegram.api.channel.participants.*;
 import org.telegram.api.chat.*;
@@ -493,8 +497,10 @@ public class MongoDBStorage implements DBStorage {
      * @param bytes
      */
     @Override
-    public void writeFile(String name, byte[] bytes) {
-        //TODO somewhen later
+    public void writeFile(TLDialog dialog, String name, byte[] bytes) {
+        InputStream inputStream = new ByteArrayInputStream(bytes);
+        GridFSUploadOptions options = new GridFSUploadOptions().chunkSizeBytes(1024).metadata(new Document("name", name));
+        ObjectId fileId = gridFSBucket.uploadFromStream(name, inputStream, options);
     }
 
     /**

@@ -82,7 +82,7 @@ public class CrawlerMain {
         ConsoleOutputMethods.testUsersHashMapOutputConsole(usersHashMap);
 
         // parameters
-        int messagesLimit = 3000; // maximum number of retrieved messages from each dialog (0 if all)
+        int messagesLimit = 0; // maximum number of retrieved messages from each dialog (0 if all)
         int participantsLimit = 0; // maximum number of retrieved participants from each dialog (0 if all)
         int filter = 0; // participants filter: 0 - recent, 1 - admins, 2 - kicked, 3 - bots, default - recent
         int maxDate = 0; // min date of message (0 if no limit)
@@ -91,11 +91,10 @@ public class CrawlerMain {
         String filesPath = "files";
 
         //Saves messages to DB:
-        //MessagesAndMediaToDB.saveOnlyMessagesToDB(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter, maxDate, minDate);
+        MessagesAndMediaToDB.saveOnlyMessagesToDB(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter, maxDate, minDate);
 
         //Saves messages to DB and media to HDD
-        MessagesAndMediaToDB.saveMessagesToDBFilesToHDD(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap,
-                messagesLimit, participantsLimit, filter, maxDate, minDate, maxFileSize, filesPath);
+        //MessagesAndMediaToDB.saveMessagesToDBFilesToHDD(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter, maxDate, minDate, maxFileSize, filesPath);
 
         //mongo.dbWriteMessageDocsHashMap(docsInDialogs);
 
