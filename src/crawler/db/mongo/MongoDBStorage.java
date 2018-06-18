@@ -497,9 +497,13 @@ public class MongoDBStorage implements DBStorage {
      * @param bytes
      */
     @Override
-    public void writeFile(TLDialog dialog, String name, byte[] bytes) {
+    public void writeFile(String name, byte[] bytes) {
         InputStream inputStream = new ByteArrayInputStream(bytes);
-        GridFSUploadOptions options = new GridFSUploadOptions().chunkSizeBytes(1024).metadata(new Document("name", name));
+        // file type (last split)
+        String[] split = name.split("\\.");
+        String type = split[split.length-1];
+        // 100kb chunks
+        GridFSUploadOptions options = new GridFSUploadOptions().chunkSizeBytes(100*1024).metadata(new Document("type", type));
         ObjectId fileId = gridFSBucket.uploadFromStream(name, inputStream, options);
     }
 

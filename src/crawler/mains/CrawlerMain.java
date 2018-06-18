@@ -15,8 +15,7 @@ import crawler.db.mongo.MongoDBStorage;
 import crawler.implementation.apicallback.ApiCallbackImplemented;
 import crawler.implementation.apimethods.AuthMethods;
 import crawler.implementation.apimethods.DialogsHistoryMethods;
-import crawler.implementation.apimethods.MediaDownloadMethods;
-import crawler.implementation.apimethods.MessagesAndMediaToDB;
+import crawler.implementation.apimethods.MessagesAndMediaDownload;
 import crawler.implementation.logs.LogMethods;
 import crawler.output.console.ConsoleOutputMethods;
 import org.telegram.api.chat.TLAbsChat;
@@ -91,10 +90,10 @@ public class CrawlerMain {
         String filesPath = "files";
 
         //Saves messages to DB:
-        MessagesAndMediaToDB.saveOnlyMessagesToDB(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter, maxDate, minDate);
+        MessagesAndMediaDownload.saveOnlyMessages(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter, maxDate, minDate);
 
         //Saves messages to DB and media to HDD
-        //MessagesAndMediaToDB.saveMessagesToDBFilesToHDD(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter, maxDate, minDate, maxFileSize, filesPath);
+        //MessagesAndMediaDownload.saveMessagesToDBFilesToHDD(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter, maxDate, minDate, maxFileSize, filesPath);
 
         //mongo.dbWriteMessageDocsHashMap(docsInDialogs);
 

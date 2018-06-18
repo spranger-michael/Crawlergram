@@ -6,6 +6,7 @@
 
 package crawler.implementation.apimethods;
 
+import crawler.db.DBStorage;
 import crawler.output.files.FileMethods;
 import org.telegram.api.document.TLAbsDocument;
 import org.telegram.api.document.TLDocument;
@@ -38,6 +39,7 @@ public class MediaDownloadMethods {
      * @param api api
      * @param absMessage message
      * @param maxSize max size of medial to be saved
+     * @param path path on the HDD
      */
     public static String messageDownloadMediaToHDD(TelegramApi api, TLAbsMessage absMessage, int maxSize, String path) {
         String out = null;
@@ -57,19 +59,25 @@ public class MediaDownloadMethods {
     }
 
     /**
-     * Gets the file name and bytes
+     * Gets the file name and bytes, saves to DB, in case of success returns the resulting filepath
      * @param api api
      * @param absMessage message
      * @param maxSize max size of medial to be saved
      */
-    public static void messageDownloadMedia(TelegramApi api, TLAbsMessage absMessage, int maxSize) {
+    public static String messageDownloadMediaToDB(TelegramApi api, DBStorage dbStorage, TLAbsMessage absMessage, int maxSize) {
+        String out = null;
         if (absMessage instanceof TLMessage) {
             if (((TLMessage) absMessage).hasMedia()) {
                 byte[] bytes = messageGetMediaBytes(api, (TLMessage) absMessage, maxSize);
                 String name = getFileName((TLMessage) absMessage);
-                System.err.println(((TLMessage) absMessage).getId()+" "+bytes.length + " " + name);
+                if ((name != null) && (bytes != null)){
+                    out = name;
+                    dbStorage.writeFile(name, bytes);
+                    System.err.println(((TLMessage) absMessage).getId()+" "+bytes.length + " " + name);
+                }
             }
         }
+        return out;
     }
 
     /**

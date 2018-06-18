@@ -7,7 +7,6 @@
 import crawler.implementation.apicallback.ApiCallbackImplemented;
 import crawler.implementation.apimethods.AuthMethods;
 import crawler.implementation.apimethods.DialogsHistoryMethods;
-import crawler.implementation.apimethods.MessagesAndMediaToDB;
 import crawler.implementation.logs.ApiLoggerInterfaceImplemented;
 import crawler.implementation.logs.MTProtoLoggerInterfaceImplemented;
 import org.telegram.api.chat.TLAbsChat;
@@ -55,7 +54,7 @@ public class testmsg {
 
 
 
-        //MessagesAndMediaToDB.saveOnlyMessagesToDB(api, dialogs, chatsHashMap, usersHashMap, messagesHashMap, 1000);
+        //MessagesAndMediaDownload.saveOnlyMessages(api, dialogs, chatsHashMap, usersHashMap, messagesHashMap, 1000);
 
 
 

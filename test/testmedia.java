@@ -96,7 +96,7 @@ public class testmedia {
         }
 
         for (TLAbsMessage absMessage: absMessages){
-            MediaDownloadMethods.messageDownloadMediaToHDD(api, absMessage, 1048576, "files");
+            MediaDownloadMethods.messageDownloadMediaToDB(api, dbStorage, absMessage, 1048576 );
         }
 
         System.exit(0);

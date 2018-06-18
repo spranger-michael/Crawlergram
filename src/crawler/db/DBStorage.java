@@ -117,5 +117,5 @@ public interface DBStorage {
      * @param name
      * @param bytes
      */
-    void writeFile(TLDialog dialog, String name, byte[] bytes);
+    void writeFile(String name, byte[] bytes);
 }
