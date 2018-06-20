@@ -12,7 +12,7 @@ import org.bson.Document;
 
 import java.util.*;
 
-public class testdb {
+public class testdbwrite {
 
     static String user = "telegramJ"; // the user name
     static String db = "telegram"; // the name of the db in which the user is defined

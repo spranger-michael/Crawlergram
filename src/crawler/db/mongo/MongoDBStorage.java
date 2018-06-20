@@ -11,21 +11,18 @@ import com.mongodb.client.*;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
 import com.mongodb.client.gridfs.model.GridFSUploadOptions;
-import com.mongodb.client.model.Sorts;
+import static com.mongodb.client.model.Sorts.*;
+import static com.mongodb.client.model.Filters.*;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
 import crawler.db.Constants;
 import crawler.db.DBStorage;
-import crawler.implementation.apimethods.MediaDownloadMethods;
 import crawler.implementation.structures.MessageDoc;
 import org.bson.Document;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import com.mongodb.client.model.Filters;
 import org.bson.types.ObjectId;
@@ -434,7 +431,7 @@ public class MongoDBStorage implements DBStorage {
     public Integer getMessageMaxId(TLDialog dialog){
         try {
             this.setTarget(Constants.MSG_DIAL_PREF + dialog.getPeer().getId());
-            FindIterable<Document> findMax = collection.find().sort(Sorts.descending("_id")).limit(1);
+            FindIterable<Document> findMax = collection.find().sort(descending("_id")).limit(1);
             Document docMax = findMax.first();
             return docMax != null ? (Integer) docMax.get("_id") : null;
         } catch (MongoException e) {
@@ -450,7 +447,7 @@ public class MongoDBStorage implements DBStorage {
     public Integer getMessageMinId(TLDialog dialog) {
         try {
             this.setTarget(Constants.MSG_DIAL_PREF + dialog.getPeer().getId());
-            FindIterable<Document> findMin = collection.find().sort(Sorts.ascending("_id")).limit(1);
+            FindIterable<Document> findMin = collection.find().sort(ascending("_id")).limit(1);
             Document docMin = findMin.first();
             return docMin != null ? (Integer) docMin.get("_id") : null;
         } catch (MongoException e) {
@@ -466,7 +463,7 @@ public class MongoDBStorage implements DBStorage {
     public Integer getMessageMinIdDate(TLDialog dialog) {
         try {
             this.setTarget(Constants.MSG_DIAL_PREF + dialog.getPeer().getId());
-            FindIterable<Document> findMin = collection.find().sort(Sorts.ascending("_id")).limit(1);
+            FindIterable<Document> findMin = collection.find().sort(ascending("_id")).limit(1);
             Document docMin = findMin.first();
             return docMin != null ? (Integer) docMin.get("date") : null;
         } catch (MongoException e) {
@@ -482,7 +479,7 @@ public class MongoDBStorage implements DBStorage {
     public Integer getMessageMaxIdDate(TLDialog dialog) {
         try {
             this.setTarget(Constants.MSG_DIAL_PREF + dialog.getPeer().getId());
-            FindIterable<Document> findMax = collection.find().sort(Sorts.descending("_id")).limit(1);
+            FindIterable<Document> findMax = collection.find().sort(descending("_id")).limit(1);
             Document docMax = findMax.first();
             return docMax != null ? (Integer) docMax.get("date") : null;
         } catch (MongoException e) {
@@ -493,8 +490,8 @@ public class MongoDBStorage implements DBStorage {
 
     /**
      * writes bytes to GridFS
-     * @param name
-     * @param bytes
+     * @param name filename
+     * @param bytes contents
      */
     @Override
     public void writeFile(String name, byte[] bytes) {
@@ -505,6 +502,45 @@ public class MongoDBStorage implements DBStorage {
         // 100kb chunks
         GridFSUploadOptions options = new GridFSUploadOptions().chunkSizeBytes(100*1024).metadata(new Document("type", type));
         ObjectId fileId = gridFSBucket.uploadFromStream(name, inputStream, options);
+    }
+
+    public List<String> getExistingCollections(){
+        List<String> colNames = new ArrayList<>();
+        MongoIterable<String> collections = database.listCollectionNames();
+        for (String collection: collections){
+            colNames.add(collection);
+        }
+        return colNames;
+    }
+
+    /**
+     * reads all messages from DB for target collection
+     * @param targetCollectionName target collection
+     */
+    public List<Document> readMessages(String targetCollectionName) {
+        List<Document> msgs = new LinkedList<>();
+        this.setTarget(targetCollectionName);
+        FindIterable<Document> docs = collection.find().sort(descending("_id"));
+        for (Document doc: docs){
+            msgs.add(doc);
+        }
+        return msgs;
+    }
+
+    /**
+     * reads messages between two dates from DB for target collection
+     * @param targetCollectionName targetCollectionName collection
+     * @param dateFrom start date date
+     * @param dateTo end date
+     */
+    public List<Document> readMessages(String targetCollectionName, int dateFrom, int dateTo) {
+        List<Document> msgs = new LinkedList<>();
+        this.setTarget(targetCollectionName);
+        FindIterable<Document> docs = collection.find(and(gte("date", dateFrom), lte("date", dateTo))).sort(descending("_id"));
+        for (Document doc: docs){
+            msgs.add(doc);
+        }
+        return msgs;
     }
 
     /**
@@ -1361,8 +1397,8 @@ public class MongoDBStorage implements DBStorage {
      * finds min & max ids of target
      */
     public void findMinMaxIds(){
-        FindIterable<Document> findMin = collection.find().sort(Sorts.ascending("_id")).limit(1);
-        FindIterable<Document> findMax = collection.find().sort(Sorts.descending("_id")).limit(1);
+        FindIterable<Document> findMin = collection.find().sort(ascending("_id")).limit(1);
+        FindIterable<Document> findMax = collection.find().sort(descending("_id")).limit(1);
         Document docMin = findMin.first();
         Document docMax = findMax.first();
         int minId = docMin != null ? (Integer) docMin.get("_id") : null;
