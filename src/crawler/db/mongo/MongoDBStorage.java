@@ -814,7 +814,7 @@ public class MongoDBStorage implements DBStorage {
      */
     private static Document tlFileLocationToDocument(TLFileLocation fl){
         return new Document("class", "FileLocation")
-                .append("size", fl.getDcId())
+                .append("dcId", fl.getDcId())
                 .append("localId", fl.getLocalId())
                 .append("volumeId", fl.getVolumeId())
                 .append("secret", fl.getSecret());
@@ -1001,7 +1001,7 @@ public class MongoDBStorage implements DBStorage {
 
         } else if (amm instanceof TLMessageMediaGame) {
             return new Document("class", "MessageMediaGame")
-                    .append("", tlGameToDocument(((TLMessageMediaGame) amm).getGame()));
+                    .append("game", tlGameToDocument(((TLMessageMediaGame) amm).getGame()));
 
         } else if (amm instanceof TLMessageMediaGeo) {
             return new Document("class", "MessageMediaGeo")
@@ -1025,7 +1025,7 @@ public class MongoDBStorage implements DBStorage {
 
         } else if (amm instanceof TLMessageMediaWebPage) {
             return new Document("class", "MessageMediaWebPage")
-                    .append("", (tlWebPageToDocument(((TLMessageMediaWebPage) amm).getWebPage())));
+                    .append("web", (tlWebPageToDocument(((TLMessageMediaWebPage) amm).getWebPage())));
 
         } else if (amm instanceof TLMessageMediaInvoice) {
             return new Document("class", "MessageMediaInvoice")
@@ -1135,9 +1135,17 @@ public class MongoDBStorage implements DBStorage {
     private static Document tlWebPageToDocument(TLAbsWebPage wp){
         if (wp instanceof TLWebPage){
             return new Document("class", "WebPage")
-                    .append("size", ((TLWebPage) wp).getTitle())
-                    .append("localId", ((TLWebPage) wp).getUrl())
-                    .append("volumeId", ((TLWebPage) wp).getSite_name());
+                    .append("title", ((TLWebPage) wp).getTitle())
+                    .append("url", ((TLWebPage) wp).getUrl())
+                    .append("site", ((TLWebPage) wp).getSite_name())
+                    .append("_id", ((TLWebPage) wp).getId())
+                    .append("description", ((TLWebPage) wp).getDescription())
+                    .append("author", ((TLWebPage) wp).getAuthor())
+                    .append("duration", ((TLWebPage) wp).getDuration())
+                    .append("type", ((TLWebPage) wp).getType())
+                    .append("photo", tlAbsPhotoToDocument(((TLWebPage) wp).getPhoto()))
+                    .append("document", tlAbsDocumentToDocument(((TLWebPage) wp).getDocument()))
+                    .append("hash", ((TLWebPage) wp).getHash());
         } else if (wp instanceof TLWebPageEmpty) {
             return new Document("class", "WebPageEmpty");
         } else {
