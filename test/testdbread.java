@@ -6,9 +6,11 @@
 
 import com.mongodb.client.MongoIterable;
 import crawler.db.mongo.MongoDBStorage;
+import crawler.implementation.structures.TopicExtractionMessage;
 import org.bson.Document;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class testdbread {
@@ -25,7 +27,12 @@ public class testdbread {
 
         List<String> collections = mongo.getExistingCollections();
         for (String collecion: collections){
-            mongo.readMessages(collecion, 1528134100, 1528634100);
+            List<Document> docs = mongo.readMessages(collecion); //1528134100, 1528634100
+            List<TopicExtractionMessage> tems = new LinkedList<>();
+            for (Document doc: docs){
+                tems.add(TopicExtractionMessage.topicExtractionMessageFromMongoDocument(doc));
+            }
+            System.out.println();
         }
 
 

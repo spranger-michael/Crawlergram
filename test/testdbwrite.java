@@ -46,7 +46,6 @@ public class testdbwrite {
         */
 
         mongo.setTarget("testColl");
-        mongo.findMinMaxIds();
 
         //mongo.dropTarget("testColl");
         //mongo.dropDatabase();

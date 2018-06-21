@@ -90,19 +90,18 @@ import org.telegram.tl.TLVector;
 
 public class MongoDBStorage implements DBStorage {
 
-    public static final String DOC_DIAL_PREF = "dialog"; // OLD prefix for dialogs collections in DB
-    static String user; // the user name
-    static String db; // the name of the db in which the user is defined
-    static String psw; // the psw
-    static String host; // host
-    static Integer port; // port
-    static MongoCredential credential; // auth info
-    static MongoClientOptions options; // client options
-    static MongoClient mongoClient; // client instance
-    static MongoDatabase database; // db instance
-    static GridFSBucket gridFSBucket; // bucket for files
-    static MongoCollection<Document> collection; //collection
-    static boolean upsert; // upsert into DB? if false - regular write
+    private String user; // the user name
+    private String db; // the name of the db in which the user is defined
+    private String psw; // the psw
+    private String host; // host
+    private Integer port; // port
+    private MongoCredential credential; // auth info
+    private MongoClientOptions options; // client options
+    private MongoClient mongoClient; // client instance
+    private MongoDatabase database; // db instance
+    private GridFSBucket gridFSBucket; // bucket for files
+    private MongoCollection<Document> collection; //collection
+    private boolean upsert; // upsert into DB? if false - regular write
 
     public MongoDBStorage(String user, String db, String psw, String host, Integer port, String gridFSBucketName){
         this.user = user;
@@ -118,112 +117,121 @@ public class MongoDBStorage implements DBStorage {
         this.upsert = false;
     }
 
-    public static String getUser() {
+    public String getUser() {
         return user;
     }
 
-    public static void setUser(String user) {
-        MongoDBStorage.user = user;
+    public void setUser(String user) {
+        this.user = user;
     }
 
-    public static String getDb() {
+    public String getDb() {
         return db;
     }
 
-    public static void setDb(String db) {
-        MongoDBStorage.db = db;
+    public void setDb(String db) {
+        this.db = db;
     }
 
-    public static String getPsw() {
+    public String getPsw() {
         return psw;
     }
 
-    public static void setPsw(String psw) {
-        MongoDBStorage.psw = psw;
+    public void setPsw(String psw) {
+        this.psw = psw;
     }
 
-    public static String getHost() {
+    public String getHost() {
         return host;
     }
 
-    public static void setHost(String host) {
-        MongoDBStorage.host = host;
+    public void setHost(String host) {
+        this.host = host;
     }
 
-    public static Integer getPort() {
+    public Integer getPort() {
         return port;
     }
 
-    public static void setPort(Integer port) {
-        MongoDBStorage.port = port;
+    public void setPort(Integer port) {
+        this.port = port;
     }
 
-    public static MongoCredential getCredential() {
+    public MongoCredential getCredential() {
         return credential;
     }
 
-    public static void setCredential(MongoCredential credential) {
-        MongoDBStorage.credential = credential;
+    public void setCredential(MongoCredential credential) {
+        this.credential = credential;
     }
 
-    public static MongoClientOptions getOptions() {
+    public MongoClientOptions getOptions() {
         return options;
     }
 
-    public static void setOptions(MongoClientOptions options) {
-        MongoDBStorage.options = options;
+    public void setOptions(MongoClientOptions options) {
+        this.options = options;
     }
 
-    public static MongoClient getMongoClient() {
+    public MongoClient getMongoClient() {
         return mongoClient;
     }
 
-    public static void setMongoClient(MongoClient mongoClient) {
-        MongoDBStorage.mongoClient = mongoClient;
+    public void setMongoClient(MongoClient mongoClient) {
+        this.mongoClient = mongoClient;
     }
 
-    public static MongoDatabase getDatabase() {
+    public MongoDatabase getDatabase() {
         return database;
     }
 
-    public static void setDatabase(MongoDatabase database) {
-        MongoDBStorage.database = database;
+    public void setDatabase(MongoDatabase database) {
+        this.database = database;
     }
 
-    public static GridFSBucket getGridFSBucket() {
+    public GridFSBucket getGridFSBucket() {
         return gridFSBucket;
     }
 
-    public static void setGridFSBucket(GridFSBucket gridFSBucket) {
-        MongoDBStorage.gridFSBucket = gridFSBucket;
+    public void setGridFSBucket(GridFSBucket gridFSBucket) {
+        this.gridFSBucket = gridFSBucket;
     }
 
-    public static MongoCollection<Document> getCollection() {
+    public MongoCollection<Document> getCollection() {
         return collection;
     }
 
-    public static void setCollection(MongoCollection<Document> collection) {
-        MongoDBStorage.collection = collection;
+    public void setCollection(MongoCollection<Document> collection) {
+        this.collection = collection;
     }
 
-    public static boolean isUpsert() {
+    public boolean isUpsert() {
         return upsert;
     }
 
-    public static void setUpsert(boolean upsert) {
-        MongoDBStorage.upsert = upsert;
+    public void setUpsert(boolean upsert) {
+        this.upsert = upsert;
     }
 
-    public static void setDatabase(String db) {
-        MongoDBStorage.database = mongoClient.getDatabase(db);
+    public void setGridFSBucket(String gridFSBucketName) {
+        gridFSBucket = GridFSBuckets.create(database, gridFSBucketName);
     }
 
-    public static void setGridFSBucket(String gridFSBucketName) {
-        MongoDBStorage.gridFSBucket = GridFSBuckets.create(database, gridFSBucketName);
+    public void setCollection(String collName) {
+        collection = database.getCollection(collName);
     }
 
-    public static void setCollection(String collName) {
-        MongoDBStorage.collection = database.getCollection(collName);
+    /**
+     * sets target database
+     * @param database target database
+     */
+    @Override
+    public void setDatabase(String database) {
+        try {
+            this.database = mongoClient.getDatabase(database);
+        } catch (MongoException e) {
+            System.err.println(e.getCode() + " " + e.getMessage());
+        }
     }
 
     /**
@@ -241,7 +249,7 @@ public class MongoDBStorage implements DBStorage {
 
     /**
      * Drops target collection
-     * @param target
+     * @param target target collection
      */
     @Override
     public void dropTarget(String target) {
@@ -266,7 +274,7 @@ public class MongoDBStorage implements DBStorage {
 
     /**
      * writes object to db
-     * @param obj
+     * @param obj object
      */
     @Override
     public void write(Object obj) {
@@ -386,7 +394,7 @@ public class MongoDBStorage implements DBStorage {
 
     /**
      * Write a single TLAbsMessage to DB
-     * @param absMessage
+     * @param absMessage abstract message
      */
     @Override
     public void writeTLAbsMessage(TLAbsMessage absMessage){
@@ -504,15 +512,6 @@ public class MongoDBStorage implements DBStorage {
         ObjectId fileId = gridFSBucket.uploadFromStream(name, inputStream, options);
     }
 
-    public List<String> getExistingCollections(){
-        List<String> colNames = new ArrayList<>();
-        MongoIterable<String> collections = database.listCollectionNames();
-        for (String collection: collections){
-            colNames.add(collection);
-        }
-        return colNames;
-    }
-
     /**
      * reads all messages from DB for target collection
      * @param targetCollectionName target collection
@@ -541,6 +540,15 @@ public class MongoDBStorage implements DBStorage {
             msgs.add(doc);
         }
         return msgs;
+    }
+
+    public List<String> getExistingCollections(){
+        List<String> colNames = new ArrayList<>();
+        MongoIterable<String> collections = database.listCollectionNames();
+        for (String collection: collections){
+            colNames.add(collection);
+        }
+        return colNames;
     }
 
     /**
@@ -646,7 +654,7 @@ public class MongoDBStorage implements DBStorage {
      */
     private static List<Document> tlVectorTlAbsUserToDocument(TLVector<TLAbsUser> vau){
         List<Document> doc = new ArrayList<>();
-        if ((!vau.isEmpty()) && (vau != null)){
+        if ((vau != null) && (!vau.isEmpty())){
             for (TLAbsUser au: vau){
                 doc.add(tlAbsUserToDocument(au));
             }
@@ -793,8 +801,7 @@ public class MongoDBStorage implements DBStorage {
 
     /**
      * checks if file location available
-     * @param aps
-     * @return
+     * @param aps abstract photo size
      */
     private static boolean sizeAvailable(TLAbsPhotoSize aps){
         boolean f = false;
@@ -980,7 +987,7 @@ public class MongoDBStorage implements DBStorage {
 
     /**
      * converts media to doc
-     * @param amm
+     * @param amm abstract message media
      * @return doc
      */
     private static Document tlAbsMessageMediaToDocument(TLAbsMessageMedia amm){
@@ -1155,7 +1162,7 @@ public class MongoDBStorage implements DBStorage {
 
     /**
      * converts service message to document
-     * @param ms
+     * @param ms message service
      */
     private static Document tlMessageServiceToDocument(TLMessageService ms){
         return new Document("class", "MessageService")
@@ -1240,10 +1247,8 @@ public class MongoDBStorage implements DBStorage {
      */
     private static List<Integer> tlIntVectorToList(TLIntVector iv){
         List<Integer> list = new ArrayList<>();
-        if ((!iv.isEmpty()) && (iv != null)) {
-            for (Integer i : iv) {
-                list.add(i);
-            }
+        if ((iv != null) && (!iv.isEmpty())) {
+            list.addAll(iv);
         }
         return list;
     }
@@ -1300,118 +1305,6 @@ public class MongoDBStorage implements DBStorage {
         } else {
             return null;
         }
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////old/////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Writes MessageDoc instances to collections. Collection names are "DOC_DIAL_PREF+[dialog_id]" (for example: "dialog777000")
-     * @param docsInDialogs HashMap of all MessageDocs in Dialogs
-     */
-    public void dbWriteMessageDocsHashMap(HashMap<Integer, List<MessageDoc>> docsInDialogs){
-        Set<Integer> keysDialogs = docsInDialogs.keySet();
-        for (Integer keyD : keysDialogs) {
-            // get collection for writing
-            if (docsInDialogs.get(keyD).size() > 0){
-                MongoCollection<Document> collection = database.getCollection(DOC_DIAL_PREF + keyD);
-                List<Document> docs = messageDocsToDocuments(docsInDialogs.get(keyD));
-                //collection.insertMany(docs);
-                for (Document doc: docs){
-                    UpdateResult uRes = collection.updateOne(Filters.eq("_id",doc.get("_id")), new Document("$set",doc), new UpdateOptions().upsert(true));
-                }
-            }
-        }
-    }
-
-    /**
-     * Reads collections from DB and saves them as HashMap. Collection names are "DOC_DIAL_PREF+[dialog_id]" (for example: "dialog777000")
-     */
-    public HashMap<Integer, List<MessageDoc>> dbReadMessageDocsHashMap(){
-        HashMap<Integer, List<MessageDoc>> docsInDialogs = new HashMap<>();
-        // get all the existing collections
-        MongoIterable<String> colNames = database.listCollectionNames();
-        // get only the collections starting from DOC_DIAL_PREF
-        List<String> newColNames = getCollectionNamesWithPrefix(colNames, DOC_DIAL_PREF);
-        // read documents from collection and insert to hashmap
-        for (String newColName: newColNames){
-            // key
-            Integer newCol = Integer.valueOf(newColName.replaceAll(DOC_DIAL_PREF,""));
-            MongoCollection<Document> collection = database.getCollection(newColName);
-            // converts to MessageDocs list and writes to the hashtable
-            docsInDialogs.put(newCol, recoverMessageDocsHashMap(collection.find()));
-        }
-        return docsInDialogs;
-    }
-
-    /**
-     * Converts a single MessageDoc to Document
-     * @param md initial MessageDoc
-     * @return Document
-     * @see Document
-     * @see MessageDoc
-     */
-    public static Document messageDocToDocument(MessageDoc md){
-        return new Document("_id", md.getId())
-                .append("date", md.getDate())
-                .append("text", md.getText());
-    }
-
-    /**
-     * Converts a list MessageDocs to a list of Documents
-     * @param mds list of MessageDoc
-     * @return list of Documents
-     * @see Document
-     * @see MessageDoc
-     */
-    public static List<Document> messageDocsToDocuments(List<MessageDoc> mds){
-        List<Document> docs = new ArrayList<>();
-        for (MessageDoc md: mds){
-            docs.add(messageDocToDocument(md));
-        }
-        return docs;
-    }
-
-    /**
-     * Gets only the list of suitable dialog names. The name is suitable if it starts from DIALOGPREFIX.
-     * @param colNames list of colNames
-     * @param prefix prefix
-     * @return list of collection names with this prefix
-     */
-    public static List<String> getCollectionNamesWithPrefix(MongoIterable<String> colNames, String prefix){
-        List<String> newColNames = new ArrayList<>();
-        for (String colName: colNames){
-            if (colName.startsWith(prefix)){
-                newColNames.add(colName);
-            }
-        }
-        return newColNames;
-    }
-
-    /**
-     * Converts FindIterable of Documents to List of MessageDocs
-     * @return List with MessageDocs from dialog
-     */
-    public static  List<MessageDoc> recoverMessageDocsHashMap(FindIterable<Document> docs){
-        List<MessageDoc> mds = new ArrayList<>();
-        for (Document doc: docs){
-            mds.add(new MessageDoc((Integer) doc.get("_id"), (Integer) doc.get("date"), (String) doc.get("text")));
-        }
-        return mds;
-    }
-
-    /**
-     * finds min & max ids of target
-     */
-    public void findMinMaxIds(){
-        FindIterable<Document> findMin = collection.find().sort(ascending("_id")).limit(1);
-        FindIterable<Document> findMax = collection.find().sort(descending("_id")).limit(1);
-        Document docMin = findMin.first();
-        Document docMax = findMax.first();
-        int minId = docMin != null ? (Integer) docMin.get("_id") : null;
-        int maxId = docMax != null ? (Integer) docMax.get("_id") : null;
-        System.out.println();
     }
 
 }
