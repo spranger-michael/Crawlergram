@@ -6,7 +6,7 @@
 
 package crawler.implementation.apimethods;
 
-import crawler.db.DBStorage;
+import storage.db.DBStorage;
 import crawler.output.files.FileMethods;
 import org.telegram.api.document.TLAbsDocument;
 import org.telegram.api.document.TLDocument;

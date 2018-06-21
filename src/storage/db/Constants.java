@@ -4,7 +4,7 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.db;
+package storage.db;
 
 /**
  * DB constants

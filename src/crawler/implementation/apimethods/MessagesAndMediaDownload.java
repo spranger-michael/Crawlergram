@@ -6,9 +6,9 @@
 
 package crawler.implementation.apimethods;
 
-import crawler.db.Constants;
-import crawler.db.DBStorage;
-import crawler.db.MessageHistoryExclusions;
+import storage.db.Constants;
+import storage.db.DBStorage;
+import storage.db.MessageHistoryExclusions;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.dialog.TLDialog;
 import org.telegram.api.engine.TelegramApi;

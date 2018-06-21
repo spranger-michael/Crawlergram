@@ -4,12 +4,11 @@
  * Creator: Georgii Mikriukov
  */
 
-import com.mongodb.client.MongoIterable;
-import crawler.db.mongo.MongoDBStorage;
-import crawler.implementation.structures.TopicExtractionMessage;
+import storage.db.mongo.MongoDBStorage;
+import topicminer.structures.TopicExtractionDialog;
+import topicminer.structures.TopicExtractionMessage;
 import org.bson.Document;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -24,16 +23,15 @@ public class testdbread {
         // User "telegramJ" - db.createUser({user: "telegramJ", pwd: "cart", roles: [{ role: "readWrite", db: "telegram" }]})
         MongoDBStorage mongo = new MongoDBStorage("telegramJ", "telegram", "cart", "localhost", 27017, "fs");
 
-
-        List<String> collections = mongo.getExistingCollections();
-        for (String collecion: collections){
-            List<Document> docs = mongo.readMessages(collecion); //1528134100, 1528634100
-            List<TopicExtractionMessage> tems = new LinkedList<>();
-            for (Document doc: docs){
-                tems.add(TopicExtractionMessage.topicExtractionMessageFromMongoDocument(doc));
-            }
-            System.out.println();
+        List<TopicExtractionDialog> dialogs = mongo.getDialogs();
+        for (TopicExtractionDialog dialog: dialogs){ //1528134100, 1528634100
+            List<TopicExtractionMessage> msgs = mongo.readMessages(dialog);
+            System.out.println(msgs.size());
         }
+
+        List<String> collections = mongo.getMessagesCollections();
+        Document peerInfo = mongo.getPeerInfo(777000);
+
 
 
 

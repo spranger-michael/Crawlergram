@@ -4,7 +4,7 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.db.mongo;
+package storage.db.mongo;
 
 import com.mongodb.*;
 import com.mongodb.client.*;
@@ -15,9 +15,8 @@ import static com.mongodb.client.model.Sorts.*;
 import static com.mongodb.client.model.Filters.*;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
-import crawler.db.Constants;
-import crawler.db.DBStorage;
-import crawler.implementation.structures.MessageDoc;
+import static storage.db.Constants.*;
+import storage.db.DBStorage;
 import org.bson.Document;
 
 import java.io.ByteArrayInputStream;
@@ -83,6 +82,8 @@ import org.telegram.api.webpage.TLWebPageEmpty;
 import org.telegram.tl.TLIntVector;
 import org.telegram.tl.TLObject;
 import org.telegram.tl.TLVector;
+import topicminer.structures.TopicExtractionDialog;
+import topicminer.structures.TopicExtractionMessage;
 
 /**
  * Class for writing and reading data to and from MongoDB.
@@ -306,7 +307,7 @@ public class MongoDBStorage implements DBStorage {
     @Override
     public void writeFullDialog(TLObject dial, HashMap<Integer, TLAbsChat> chatsHashMap, HashMap<Integer, TLAbsUser> usersHashMap){
         // set target
-        this.setTarget(Constants.DIALOGS);
+        this.setTarget(DIALOGS);
         // write it
         if (dial instanceof TLMessagesChatFull) {
             TLAbsChatFull absChatFull = ((TLMessagesChatFull) dial).getFullChat();
@@ -328,7 +329,7 @@ public class MongoDBStorage implements DBStorage {
     @Override
     public void writeUsersHashMap(HashMap<Integer, TLAbsUser> usersHashMap) {
         // set target
-        this.setTarget(Constants.USERS_COL);
+        this.setTarget(USERS_COL);
         // write
         Set<Integer> keys = usersHashMap.keySet();
         for (Integer key : keys) {
@@ -344,7 +345,7 @@ public class MongoDBStorage implements DBStorage {
     @Override
     public void writeChatsHashMap(HashMap<Integer, TLAbsChat> chatsHashMap) {
         // set target
-        this.setTarget(Constants.CHATS_COL);
+        this.setTarget(CHATS_COL);
         // write
         Set<Integer> keys = chatsHashMap.keySet();
         for (Integer key : keys) {
@@ -359,7 +360,7 @@ public class MongoDBStorage implements DBStorage {
      */
     @Override
     public void writeParticipants(TLObject participants, TLDialog dialog) {
-        this.setTarget(Constants.PAR_DIAL_PREF + dialog.getPeer().getId());
+        this.setTarget(PAR_DIAL_PREF + dialog.getPeer().getId());
         if (participants != null){
             if (participants instanceof TLChatParticipants){
                 writeChatsParticipants(((TLChatParticipants) participants).getParticipants());
@@ -380,7 +381,7 @@ public class MongoDBStorage implements DBStorage {
      */
     @Override
     public void writeTLAbsMessages(TLVector<TLAbsMessage> absMessages, TLDialog dialog) {
-        this.setTarget(Constants.MSG_DIAL_PREF + dialog.getPeer().getId());
+        this.setTarget(MSG_DIAL_PREF + dialog.getPeer().getId());
         if ((absMessages != null) && (!absMessages.isEmpty())){
             try {
                 for (TLAbsMessage absMessage : absMessages) {
@@ -438,7 +439,7 @@ public class MongoDBStorage implements DBStorage {
     @Override
     public Integer getMessageMaxId(TLDialog dialog){
         try {
-            this.setTarget(Constants.MSG_DIAL_PREF + dialog.getPeer().getId());
+            this.setTarget(MSG_DIAL_PREF + dialog.getPeer().getId());
             FindIterable<Document> findMax = collection.find().sort(descending("_id")).limit(1);
             Document docMax = findMax.first();
             return docMax != null ? (Integer) docMax.get("_id") : null;
@@ -454,7 +455,7 @@ public class MongoDBStorage implements DBStorage {
     @Override
     public Integer getMessageMinId(TLDialog dialog) {
         try {
-            this.setTarget(Constants.MSG_DIAL_PREF + dialog.getPeer().getId());
+            this.setTarget(MSG_DIAL_PREF + dialog.getPeer().getId());
             FindIterable<Document> findMin = collection.find().sort(ascending("_id")).limit(1);
             Document docMin = findMin.first();
             return docMin != null ? (Integer) docMin.get("_id") : null;
@@ -470,7 +471,7 @@ public class MongoDBStorage implements DBStorage {
     @Override
     public Integer getMessageMinIdDate(TLDialog dialog) {
         try {
-            this.setTarget(Constants.MSG_DIAL_PREF + dialog.getPeer().getId());
+            this.setTarget(MSG_DIAL_PREF + dialog.getPeer().getId());
             FindIterable<Document> findMin = collection.find().sort(ascending("_id")).limit(1);
             Document docMin = findMin.first();
             return docMin != null ? (Integer) docMin.get("date") : null;
@@ -486,7 +487,7 @@ public class MongoDBStorage implements DBStorage {
     @Override
     public Integer getMessageMaxIdDate(TLDialog dialog) {
         try {
-            this.setTarget(Constants.MSG_DIAL_PREF + dialog.getPeer().getId());
+            this.setTarget(MSG_DIAL_PREF + dialog.getPeer().getId());
             FindIterable<Document> findMax = collection.find().sort(descending("_id")).limit(1);
             Document docMax = findMax.first();
             return docMax != null ? (Integer) docMax.get("date") : null;
@@ -514,39 +515,87 @@ public class MongoDBStorage implements DBStorage {
 
     /**
      * reads all messages from DB for target collection
-     * @param targetCollectionName target collection
+     * @param target target collection
      */
-    public List<Document> readMessages(String targetCollectionName) {
-        List<Document> msgs = new LinkedList<>();
-        this.setTarget(targetCollectionName);
+    @Override
+    public List<TopicExtractionMessage> readMessages(TopicExtractionDialog target) {
+        List<TopicExtractionMessage> msgs = new LinkedList<>();
+        this.setTarget(MSG_DIAL_PREF + target.getId());
         FindIterable<Document> docs = collection.find().sort(descending("_id"));
         for (Document doc: docs){
-            msgs.add(doc);
+            msgs.add(TopicExtractionMessage.topicExtractionMessageFromMongoDocument(doc));
         }
         return msgs;
     }
 
     /**
      * reads messages between two dates from DB for target collection
-     * @param targetCollectionName targetCollectionName collection
+     * @param target targetCollectionName collection
      * @param dateFrom start date date
      * @param dateTo end date
      */
-    public List<Document> readMessages(String targetCollectionName, int dateFrom, int dateTo) {
-        List<Document> msgs = new LinkedList<>();
-        this.setTarget(targetCollectionName);
+    @Override
+    public List<TopicExtractionMessage> readMessages(TopicExtractionDialog target, int dateFrom, int dateTo) {
+        List<TopicExtractionMessage> msgs = new LinkedList<>();
+        this.setTarget(MSG_DIAL_PREF + target.getId());
         FindIterable<Document> docs = collection.find(and(gte("date", dateFrom), lte("date", dateTo))).sort(descending("_id"));
         for (Document doc: docs){
-            msgs.add(doc);
+            msgs.add(TopicExtractionMessage.topicExtractionMessageFromMongoDocument(doc));
         }
         return msgs;
     }
 
-    public List<String> getExistingCollections(){
+    /**
+     * returns dialogs list from respective collection
+     */
+    @Override
+    public List<TopicExtractionDialog> getDialogs(){
+        List<TopicExtractionDialog> dialogs = new ArrayList<>();
+        this.setTarget("DIALOGS");
+        FindIterable<Document> dials = collection.find();
+        for (Document dial: dials){
+            Document info = getPeerInfo((Integer) dial.get("_id"));
+            dialogs.add(TopicExtractionDialog.topicExtractionDialogFromMongoDocument(info));
+        }
+        return dialogs;
+    }
+
+    /**
+     * gets peer info from database
+     * @param id
+     */
+    public Document getPeerInfo(Integer id){
+        this.setTarget("CHATS");
+        Document peerInfo = collection.find(eq("_id", id)).first();
+        if (peerInfo == null){
+            this.setTarget("USERS");
+            peerInfo = collection.find(eq("_id", id)).first();
+        }
+        return peerInfo;
+    }
+
+    /**
+     * returns list of existing collections names
+     */
+    public List<String> getAllCollections(){
         List<String> colNames = new ArrayList<>();
         MongoIterable<String> collections = database.listCollectionNames();
         for (String collection: collections){
             colNames.add(collection);
+        }
+        return colNames;
+    }
+
+    /**
+     * returns list of existing collections names
+     */
+    public List<String> getMessagesCollections(){
+        List<String> colNames = new ArrayList<>();
+        MongoIterable<String> collections = database.listCollectionNames();
+        for (String collection: collections){
+            if (collection.startsWith("MESSAGES")){
+                colNames.add(collection);
+            }
         }
         return colNames;
     }

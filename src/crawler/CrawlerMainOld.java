@@ -4,14 +4,14 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.mains;
+package crawler;
 
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import crawler.db.mongo.MongoDBStorage;
+import storage.db.mongo.MongoDBStorage;
 import crawler.implementation.apicallback.ApiCallbackImplemented;
 import crawler.implementation.apimethods.*;
 import crawler.implementation.structures.DataStructuresMethods;
@@ -101,7 +101,7 @@ public class CrawlerMainOld {
         DataStructuresMethods.removeDocsNewLine(docsInDialogs);
         DataStructuresMethods.saveDocsToFiles(docsInDialogs, "docs");
 
-        mongo.dbWriteMessageDocsHashMap(docsInDialogs);
+       // mongo.dbWriteMessageDocsHashMap(docsInDialogs);
 
         // stops the execution
         System.exit(0);

@@ -5,9 +5,7 @@
  */
 
 
-import com.mongodb.client.MongoCollection;
-import crawler.db.mongo.MongoDBStorage;
-import crawler.implementation.structures.MessageDoc;
+import storage.db.mongo.MongoDBStorage;
 import org.bson.Document;
 
 import java.util.*;

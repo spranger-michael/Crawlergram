@@ -4,7 +4,7 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.implementation.structures;
+package topicminer.structures;
 
 import org.bson.Document;
 
@@ -81,7 +81,7 @@ public class TopicExtractionMessage {
     }
 
     /**
-     * gets media's caption or description/title     *
+     * gets media's caption or description/title
      * @param doc document
      */
     private static String getMediaCaption(Document doc) {

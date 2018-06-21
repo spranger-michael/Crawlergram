@@ -4,8 +4,8 @@
  * Creator: mikriuko
  */
 
-import crawler.implementation.maths.gaussnewton.GaussNewton;
-import crawler.implementation.maths.gaussnewton.NoSquareException;
+import topicminer.maths.gaussnewton.GaussNewton;
+import topicminer.maths.gaussnewton.NoSquareException;
 
 public class testexp {
 

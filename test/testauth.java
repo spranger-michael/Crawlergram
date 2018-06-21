@@ -4,8 +4,8 @@
  * Creator: Georgii Mikriukov
  */
 
-import crawler.db.DBStorage;
-import crawler.db.mongo.MongoDBStorage;
+import storage.db.DBStorage;
+import storage.db.mongo.MongoDBStorage;
 import crawler.implementation.apicallback.ApiCallbackImplemented;
 import crawler.implementation.apimethods.AuthMethods;
 import crawler.implementation.apimethods.DialogsHistoryMethods;

@@ -7,11 +7,11 @@
 package crawler.implementation.apimethods;
 
 import crawler.implementation.structures.DataStructuresMethods;
-import crawler.implementation.maths.gaussnewton.ExpRegMaths;
-import crawler.implementation.maths.gaussnewton.GaussNewton;
+import topicminer.maths.gaussnewton.ExpRegMaths;
+import topicminer.maths.gaussnewton.GaussNewton;
 import crawler.implementation.structures.MessageDoc;
 import crawler.output.console.ConsoleOutputMethods;
-import crawler.implementation.maths.gaussnewton.NoSquareException;
+import topicminer.maths.gaussnewton.NoSquareException;
 import crawler.implementation.structures.MessageDocByDateComparator;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.chat.channel.TLChannel;

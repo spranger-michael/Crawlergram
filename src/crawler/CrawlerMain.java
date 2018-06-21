@@ -8,10 +8,10 @@
  * Connects to The telegram, gets dialogs, saves messages and documents to DB
  */
 
-package crawler.mains;
+package crawler;
 
-import crawler.db.DBStorage;
-import crawler.db.mongo.MongoDBStorage;
+import storage.db.DBStorage;
+import storage.db.mongo.MongoDBStorage;
 import crawler.implementation.apicallback.ApiCallbackImplemented;
 import crawler.implementation.apimethods.AuthMethods;
 import crawler.implementation.apimethods.DialogsHistoryMethods;
@@ -94,8 +94,6 @@ public class CrawlerMain {
 
         //Saves messages to DB and media to HDD
         //MessagesAndMediaDownload.saveMessagesToDBFilesToHDD(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter, maxDate, minDate, maxFileSize, filesPath);
-
-        //mongo.dbWriteMessageDocsHashMap(docsInDialogs);
 
         // stops the execution
         System.exit(0);

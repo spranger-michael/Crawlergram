@@ -4,17 +4,19 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.db;
+package storage.db;
 
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.dialog.TLDialog;
 import org.telegram.api.message.TLAbsMessage;
-import org.telegram.api.message.media.TLAbsMessageMedia;
 import org.telegram.api.user.TLAbsUser;
 import org.telegram.tl.TLObject;
 import org.telegram.tl.TLVector;
+import topicminer.structures.TopicExtractionDialog;
+import topicminer.structures.TopicExtractionMessage;
 
 import java.util.HashMap;
+import java.util.List;
 
 public interface DBStorage {
 
@@ -124,6 +126,26 @@ public interface DBStorage {
      * @param bytes
      */
     void writeFile(String name, byte[] bytes);
+
+    /**
+     * reads all messages from DB
+     * @param target
+     */
+    List<TopicExtractionMessage> readMessages(TopicExtractionDialog target);
+
+    /**
+     * reads messages between two dates from DB
+     * @param target
+     * @param dateFrom
+     * @param dateTo
+     */
+    List<TopicExtractionMessage> readMessages(TopicExtractionDialog target, int dateFrom, int dateTo);
+
+    /**
+     * returns dialogs list
+     */
+    List<TopicExtractionDialog> getDialogs();
+
 
     
 }
