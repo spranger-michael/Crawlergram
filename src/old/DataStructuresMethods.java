@@ -4,15 +4,9 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.structures;
+package old;
 
 import crawler.output.FileMethods;
-import org.telegram.api.chat.TLAbsChat;
-import org.telegram.api.message.TLAbsMessage;
-import org.telegram.api.message.TLMessage;
-import org.telegram.api.message.TLMessageService;
-import org.telegram.api.user.TLAbsUser;
-import org.telegram.tl.TLVector;
 
 import java.io.*;
 import java.text.DateFormat;
@@ -23,75 +17,6 @@ import java.util.List;
 import java.util.Set;
 
 public class DataStructuresMethods {
-
-    /**
-     * Creates and inits chats hashmap
-     * @param   chats   TLVector with chats
-     * @see HashMap<Integer, TLAbsChat>
-     * @see TLVector<TLAbsChat>
-     */
-    public static HashMap<Integer, TLAbsChat> initChatsHashMap(TLVector<TLAbsChat> chats){
-        HashMap<Integer, TLAbsChat> chatsHashMap = new HashMap<Integer, TLAbsChat>();
-        chats.forEach(chat -> chatsHashMap.put(chat.getId(), chat));
-        return chatsHashMap;
-    }
-
-    /**
-     * Creates and inits users hashmap
-     * @param   users   TLVector with users
-     * @see HashMap<Integer, TLAbsUser>
-     * @see TLVector<TLAbsUser>
-     */
-    public static HashMap<Integer, TLAbsUser> initUsersHashMap(TLVector<TLAbsUser> users){
-        HashMap<Integer, TLAbsUser> usersHashMap = new HashMap<Integer, TLAbsUser>();
-        users.forEach(user -> usersHashMap.put(user.getId(), user));
-        return usersHashMap;
-    }
-
-    /**
-     * Insert chats in existing hashmap (if key does not exist)
-     * @param   chats   TLVector with chats
-     * @see HashMap<Integer, TLAbsChat>
-     * @see TLVector<TLAbsChat>
-     */
-    public static void insertIntoChatsHashMap(HashMap<Integer, TLAbsChat> chatsHashMap, TLVector<TLAbsChat> chats){
-        for (TLAbsChat chat: chats){
-            if (!chatsHashMap.containsKey(chat.getId())){
-                chatsHashMap.put(chat.getId(), chat);
-            }
-        }
-    }
-
-    /**
-     * Insert users in existing hashmap (if key does not exist)
-     * @param   users   TLVector with users
-     * @see HashMap<Integer, TLAbsUser>
-     * @see TLVector<TLAbsUser>
-     */
-    public static void insertIntoUsersHashMap(HashMap<Integer, TLAbsUser> usersHashMap, TLVector<TLAbsUser> users){
-        for (TLAbsUser user: users){
-            if (!usersHashMap.containsKey(user.getId())){
-                usersHashMap.put(user.getId(), user);
-            }
-        }
-    }
-
-    /**
-     * Insert messages in existing hashmap (if key does not exist)
-     * @param   messages   TLVector with messages
-     * @see HashMap<Integer, TLAbsUser>
-     * @see TLVector<TLAbsUser>
-     */
-    public static void insertIntoMessagesHashMap(HashMap<Integer, TLAbsMessage> messagesHashMap,
-                                                 TLVector<TLAbsMessage> messages){
-        for (TLAbsMessage message: messages){
-            if ((message instanceof TLMessage) && !messagesHashMap.containsKey(message.getChatId())){
-                messagesHashMap.put(message.getChatId(), message);
-            } else if ((message instanceof TLMessageService) && !messagesHashMap.containsKey(message.getChatId())){
-                messagesHashMap.put(message.getChatId(), message);
-            }
-        }
-    }
 
     /**
      * Converts Set to double array

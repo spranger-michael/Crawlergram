@@ -4,7 +4,7 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.structures;
+package old;
 
 /**
  * MessageDoc is a single short message, channel message or set of short messages which were written during some short time interval.

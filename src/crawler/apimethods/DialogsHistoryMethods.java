@@ -6,8 +6,6 @@
 
 package crawler.apimethods;
 
-import storage.db.MessageHistoryExclusions;
-import crawler.structures.DataStructuresMethods;
 import org.telegram.api.channel.TLChannelParticipants;
 import org.telegram.api.channel.participants.*;
 import org.telegram.api.chat.TLAbsChat;
@@ -47,6 +45,7 @@ import org.telegram.api.user.TLUserFull;
 import org.telegram.tl.TLMethod;
 import org.telegram.tl.TLObject;
 import org.telegram.tl.TLVector;
+import storage.db.MessageHistoryExclusions;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -136,9 +135,9 @@ public class DialogsHistoryMethods {
                                                        HashMap<Integer, TLAbsUser> usersHashMap,
                                                        HashMap<Integer, TLAbsMessage> messagesHashMap,
                                                        Set<Integer> dialogSet){
-        DataStructuresMethods.insertIntoChatsHashMap(chatsHashMap, absDialogs.getChats());
-        DataStructuresMethods.insertIntoUsersHashMap(usersHashMap, absDialogs.getUsers());
-        DataStructuresMethods.insertIntoMessagesHashMap(messagesHashMap, absDialogs.getMessages());
+        insertIntoChatsHashMap(chatsHashMap, absDialogs.getChats());
+        insertIntoUsersHashMap(usersHashMap, absDialogs.getUsers());
+        insertIntoMessagesHashMap(messagesHashMap, absDialogs.getMessages());
         dialogsIdToSet(absDialogs,dialogs,dialogSet);
     }
 
@@ -215,8 +214,8 @@ public class DialogsHistoryMethods {
                 // if returns no messages -> break the loop
                 if (absMessages.getMessages().isEmpty() || absMessages == null || absMessages.getMessages() == null){ break; }
                 // update known users and chats hashmaps
-                DataStructuresMethods.insertIntoChatsHashMap(chatsHashMap, absMessages.getChats());
-                DataStructuresMethods.insertIntoUsersHashMap(usersHashMap, absMessages.getUsers());
+                insertIntoChatsHashMap(chatsHashMap, absMessages.getChats());
+                insertIntoUsersHashMap(usersHashMap, absMessages.getUsers());
                 // abstract messages
                 TLVector<TLAbsMessage> absMessagesVector = absMessages.getMessages();
                 // collect only messages written by users
@@ -326,8 +325,8 @@ public class DialogsHistoryMethods {
             // if returns no messages -> break the loop
             if (absMessages.getMessages().isEmpty() || absMessages == null || absMessages.getMessages() == null) { break; }
             // update known users and chats hashmaps
-            DataStructuresMethods.insertIntoChatsHashMap(chatsHashMap, absMessages.getChats());
-            DataStructuresMethods.insertIntoUsersHashMap(usersHashMap, absMessages.getUsers());
+            insertIntoChatsHashMap(chatsHashMap, absMessages.getChats());
+            insertIntoUsersHashMap(usersHashMap, absMessages.getUsers());
             // abstract messages
             TLVector<TLAbsMessage> absMessagesVector = absMessages.getMessages();
             // collect non-empty ones
@@ -655,10 +654,10 @@ public class DialogsHistoryMethods {
             TLAbsChatInvite absChatInvite = absChatFull.getExportedInvite();
             // update the hasmaps
             if (absChatInvite instanceof TLChatInvite){
-                DataStructuresMethods.insertIntoUsersHashMap(usersHashMap, ((TLChatInvite) absChatInvite).getParticipants());
+                insertIntoUsersHashMap(usersHashMap, ((TLChatInvite) absChatInvite).getParticipants());
             }
-            DataStructuresMethods.insertIntoChatsHashMap(chatsHashMap, ((TLMessagesChatFull) full).getChats());
-            DataStructuresMethods.insertIntoUsersHashMap(usersHashMap, ((TLMessagesChatFull) full).getUsers());
+            insertIntoChatsHashMap(chatsHashMap, ((TLMessagesChatFull) full).getChats());
+            insertIntoUsersHashMap(usersHashMap, ((TLMessagesChatFull) full).getUsers());
             //check if chat full or channel full
             if (absChatFull instanceof TLChannelFull) {
                 participants = getChannelParticipants(api, (TLChannelFull) absChatFull, chatsHashMap, usersHashMap, limit, filter);
@@ -722,7 +721,7 @@ public class DialogsHistoryMethods {
             channelParticipants.setCount(users.size());
             channelParticipants.setUsers(users);
             channelParticipants.setParticipants(participants);
-            DataStructuresMethods.insertIntoUsersHashMap(usersHashMap, users);
+            insertIntoUsersHashMap(usersHashMap, users);
         }
         return channelParticipants;
     }
@@ -837,6 +836,12 @@ public class DialogsHistoryMethods {
         return messages;
     }
 
+    /**
+     * removes repeating messages
+     * @param msgs messages
+     * @param idMin min id
+     * @param idMax max id
+     */
     private static TLVector<TLAbsMessage> removeExistingMessages(TLVector<TLAbsMessage> msgs, int idMin, int idMax){
         for (int i = 0; i < msgs.size(); i++){
             TLAbsMessage msg = msgs.get(i);
@@ -853,6 +858,75 @@ public class DialogsHistoryMethods {
             }
         }
         return msgs;
+    }
+
+    /**
+     * Creates and inits chats hashmap
+     * @param   chats   TLVector with chats
+     * @see HashMap<Integer, TLAbsChat>
+     * @see TLVector<TLAbsChat>
+     */
+    public static HashMap<Integer, TLAbsChat> initChatsHashMap(TLVector<TLAbsChat> chats){
+        HashMap<Integer, TLAbsChat> chatsHashMap = new HashMap<Integer, TLAbsChat>();
+        chats.forEach(chat -> chatsHashMap.put(chat.getId(), chat));
+        return chatsHashMap;
+    }
+
+    /**
+     * Creates and inits users hashmap
+     * @param   users   TLVector with users
+     * @see HashMap<Integer, TLAbsUser>
+     * @see TLVector<TLAbsUser>
+     */
+    public static HashMap<Integer, TLAbsUser> initUsersHashMap(TLVector<TLAbsUser> users){
+        HashMap<Integer, TLAbsUser> usersHashMap = new HashMap<Integer, TLAbsUser>();
+        users.forEach(user -> usersHashMap.put(user.getId(), user));
+        return usersHashMap;
+    }
+
+    /**
+     * Insert chats in existing hashmap (if key does not exist)
+     * @param   chats   TLVector with chats
+     * @see HashMap<Integer, TLAbsChat>
+     * @see TLVector<TLAbsChat>
+     */
+    public static void insertIntoChatsHashMap(HashMap<Integer, TLAbsChat> chatsHashMap, TLVector<TLAbsChat> chats){
+        for (TLAbsChat chat: chats){
+            if (!chatsHashMap.containsKey(chat.getId())){
+                chatsHashMap.put(chat.getId(), chat);
+            }
+        }
+    }
+
+    /**
+     * Insert users in existing hashmap (if key does not exist)
+     * @param   users   TLVector with users
+     * @see HashMap<Integer, TLAbsUser>
+     * @see TLVector<TLAbsUser>
+     */
+    public static void insertIntoUsersHashMap(HashMap<Integer, TLAbsUser> usersHashMap, TLVector<TLAbsUser> users){
+        for (TLAbsUser user: users){
+            if (!usersHashMap.containsKey(user.getId())){
+                usersHashMap.put(user.getId(), user);
+            }
+        }
+    }
+
+    /**
+     * Insert messages in existing hashmap (if key does not exist)
+     * @param   messages   TLVector with messages
+     * @see HashMap<Integer, TLAbsUser>
+     * @see TLVector<TLAbsUser>
+     */
+    public static void insertIntoMessagesHashMap(HashMap<Integer, TLAbsMessage> messagesHashMap,
+                                                 TLVector<TLAbsMessage> messages){
+        for (TLAbsMessage message: messages){
+            if ((message instanceof TLMessage) && !messagesHashMap.containsKey(message.getChatId())){
+                messagesHashMap.put(message.getChatId(), message);
+            } else if ((message instanceof TLMessageService) && !messagesHashMap.containsKey(message.getChatId())){
+                messagesHashMap.put(message.getChatId(), message);
+            }
+        }
     }
 
 }

@@ -6,10 +6,6 @@
 
 package crawler.apimethods;
 
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Scanner;
-
 import org.telegram.api.channel.participants.filters.*;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.chat.channel.TLChannel;
@@ -45,6 +41,10 @@ import org.telegram.api.peer.TLPeerUser;
 import org.telegram.api.user.TLAbsUser;
 import org.telegram.api.user.TLUser;
 import org.telegram.tl.TLBytes;
+
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Scanner;
 
 public class SetTLObjectsMethods {
 

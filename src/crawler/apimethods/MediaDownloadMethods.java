@@ -6,7 +6,6 @@
 
 package crawler.apimethods;
 
-import storage.db.DBStorage;
 import crawler.output.FileMethods;
 import org.telegram.api.document.TLAbsDocument;
 import org.telegram.api.document.TLDocument;
@@ -20,7 +19,9 @@ import org.telegram.api.input.filelocation.TLInputDocumentFileLocation;
 import org.telegram.api.input.filelocation.TLInputFileLocation;
 import org.telegram.api.message.TLAbsMessage;
 import org.telegram.api.message.TLMessage;
-import org.telegram.api.message.media.*;
+import org.telegram.api.message.media.TLAbsMessageMedia;
+import org.telegram.api.message.media.TLMessageMediaDocument;
+import org.telegram.api.message.media.TLMessageMediaPhoto;
 import org.telegram.api.photo.TLAbsPhoto;
 import org.telegram.api.photo.TLPhoto;
 import org.telegram.api.photo.size.TLAbsPhotoSize;
@@ -28,6 +29,7 @@ import org.telegram.api.photo.size.TLPhotoSize;
 import org.telegram.api.upload.file.TLAbsFile;
 import org.telegram.api.upload.file.TLFile;
 import org.telegram.tl.TLVector;
+import storage.db.DBStorage;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;

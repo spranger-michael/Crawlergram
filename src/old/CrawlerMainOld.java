@@ -14,9 +14,7 @@ import java.util.*;
 import storage.db.mongo.MongoDBStorage;
 import crawler.apicallback.ApiCallbackImplemented;
 import crawler.apimethods.*;
-import crawler.structures.DataStructuresMethods;
 import crawler.output.ConsoleOutputMethods;
-import crawler.structures.MessageDoc;
 import crawler.output.FileMethods;
 import crawler.logs.MTProtoLoggerInterfaceImplemented;
 import crawler.logs.ApiLoggerInterfaceImplemented;
@@ -97,7 +95,7 @@ public class CrawlerMainOld {
          */
         HashMap<Integer, List<MessageDoc>> docsInDialogs = MessagesToDocsMethods.apiMessagesToDocuments(api, dialogs, chatsHashMap, usersHashMap, messagesLimit, docThreshold);
         // save HashMap to file (with additional preparation)
-        ConsoleOutputMethods.testDocsInDialogsHashMapOutputConsole(docsInDialogs);
+        testDocsInDialogsHashMapOutputConsole(docsInDialogs);
         DataStructuresMethods.removeDocsNewLine(docsInDialogs);
         DataStructuresMethods.saveDocsToFiles(docsInDialogs, "docs");
 
@@ -105,5 +103,43 @@ public class CrawlerMainOld {
 
         // stops the execution
         System.exit(0);
+    }
+
+    /**
+     * Outputs content of docs in dialogs hashmap to console
+     * @param	docsInDialogs  HashMap with docs in dialogs
+     * @see HashMap
+     * @see Set
+     * @see TLAbsUser
+     */
+    public static void testDocsInDialogsHashMapOutputConsole2( HashMap<Integer, List<MessageDoc>> docsInDialogs){
+        Set<Integer> keysDialogs = docsInDialogs.keySet();
+        for (Integer keyD : keysDialogs) {
+            System.out.println("DIALOG " + keyD);
+            for (MessageDoc doc : docsInDialogs.get(keyD)) {
+                System.out.println("DOC " + doc.getId() + " " + doc.getText());
+            }
+        }
+        System.out.println();
+    }
+
+    /**
+     * Outputs content of users hashmap to console
+     * @param	docsInDialogs  HashMap with docs in dialogs
+     * @see HashMap
+     * @see Set
+     * @see TLAbsUser
+     */
+    public static void testDocsInDialogsHashMapOutputConsole(HashMap<Integer, List<MessageDoc>> docsInDialogs){
+        Set<Integer> keysDialogs = docsInDialogs.keySet();
+        for (Integer keyD : keysDialogs) {
+            System.out.println("DIALOG " + keyD);
+            int count = 0;
+            for (MessageDoc doc : docsInDialogs.get(keyD)) {
+                count++;
+            }
+            System.out.println("DIALOG " + keyD + " " + count);
+        }
+        System.out.println();
     }
 }

@@ -20,7 +20,7 @@ public class ApiCallbackImplemented implements ApiCallback {
 
     @Override
     public void onUpdate(TLAbsUpdates updates) {
-        Logger.d("CALLBACK"," >> # Update");
+        Logger.d("CALLBACK"," >> # Update " + updates.getClass());
     }
 
     @Override

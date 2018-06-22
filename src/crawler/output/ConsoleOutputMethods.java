@@ -6,7 +6,6 @@
 
 package crawler.output;
 
-import crawler.structures.MessageDoc;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.chat.TLChat;
 import org.telegram.api.chat.TLChatEmpty;
@@ -23,7 +22,6 @@ import org.telegram.api.peer.TLPeerUser;
 import org.telegram.api.user.TLAbsUser;
 import org.telegram.api.user.TLUser;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 
 public class ConsoleOutputMethods {
@@ -112,44 +110,6 @@ public class ConsoleOutputMethods {
             }
         }
         return out;
-    }
-
-    /**
-     * Outputs content of docs in dialogs hashmap to console
-     * @param	docsInDialogs  HashMap with docs in dialogs
-     * @see HashMap
-     * @see Set
-     * @see TLAbsUser
-     */
-    public static void testDocsInDialogsHashMapOutputConsole2( HashMap<Integer, List<MessageDoc>> docsInDialogs){
-        Set<Integer> keysDialogs = docsInDialogs.keySet();
-        for (Integer keyD : keysDialogs) {
-            System.out.println("DIALOG " + keyD);
-            for (MessageDoc doc : docsInDialogs.get(keyD)) {
-                System.out.println("DOC " + doc.getId() + " " + doc.getText());
-            }
-        }
-        System.out.println();
-    }
-
-    /**
-     * Outputs content of users hashmap to console
-     * @param	docsInDialogs  HashMap with docs in dialogs
-     * @see HashMap
-     * @see Set
-     * @see TLAbsUser
-     */
-    public static void testDocsInDialogsHashMapOutputConsole(HashMap<Integer, List<MessageDoc>> docsInDialogs){
-        Set<Integer> keysDialogs = docsInDialogs.keySet();
-        for (Integer keyD : keysDialogs) {
-            System.out.println("DIALOG " + keyD);
-            int count = 0;
-            for (MessageDoc doc : docsInDialogs.get(keyD)) {
-                count++;
-            }
-            System.out.println("DIALOG " + keyD + " " + count);
-        }
-        System.out.println();
     }
 
     /**

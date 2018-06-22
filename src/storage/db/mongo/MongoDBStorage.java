@@ -7,22 +7,16 @@
 package storage.db.mongo;
 
 import com.mongodb.*;
-import com.mongodb.client.*;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoIterable;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
 import com.mongodb.client.gridfs.model.GridFSUploadOptions;
-import static com.mongodb.client.model.Sorts.*;
-import static com.mongodb.client.model.Filters.*;
-import com.mongodb.client.model.UpdateOptions;
-import static storage.db.Constants.*;
-import storage.db.DBStorage;
-import org.bson.Document;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.*;
-
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.UpdateOptions;
+import org.bson.Document;
 import org.telegram.api.channel.TLChannelParticipants;
 import org.telegram.api.channel.participants.*;
 import org.telegram.api.chat.*;
@@ -80,8 +74,18 @@ import org.telegram.api.webpage.TLWebPageEmpty;
 import org.telegram.tl.TLIntVector;
 import org.telegram.tl.TLObject;
 import org.telegram.tl.TLVector;
+import storage.db.DBStorage;
 import topicminer.structures.TopicExtractionDialog;
 import topicminer.structures.TopicExtractionMessage;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.*;
+
+import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Sorts.ascending;
+import static com.mongodb.client.model.Sorts.descending;
+import static storage.db.Constants.*;
 
 /**
  * Class for writing and reading data to and from MongoDB.

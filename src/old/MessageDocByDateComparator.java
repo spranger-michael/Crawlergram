@@ -4,7 +4,7 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.structures;
+package old;
 
 import java.util.Comparator;
 

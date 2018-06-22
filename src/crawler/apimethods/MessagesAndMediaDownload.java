@@ -6,9 +6,6 @@
 
 package crawler.apimethods;
 
-import storage.db.Constants;
-import storage.db.DBStorage;
-import storage.db.MessageHistoryExclusions;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.dialog.TLDialog;
 import org.telegram.api.engine.TelegramApi;
@@ -16,8 +13,12 @@ import org.telegram.api.message.TLAbsMessage;
 import org.telegram.api.user.TLAbsUser;
 import org.telegram.tl.TLObject;
 import org.telegram.tl.TLVector;
+import storage.db.DBStorage;
+import storage.db.MessageHistoryExclusions;
 
 import java.util.HashMap;
+
+import static storage.db.Constants.MSG_DIAL_PREF;
 
 public class MessagesAndMediaDownload {
 
@@ -197,7 +198,7 @@ public class MessagesAndMediaDownload {
             }
 
             // writes messages of the dialog to "messages + [dialog_id]" table/collection/etc.
-            dbStorage.setTarget(Constants.MSG_DIAL_PREF + dialog.getPeer().getId());
+            dbStorage.setTarget(MSG_DIAL_PREF + dialog.getPeer().getId());
             for (TLAbsMessage absMessage: absMessages){
                 String reference = MediaDownloadMethods.messageDownloadMediaToHDD(api, absMessage, maxSize, path);
                 if (reference != null){
@@ -257,7 +258,7 @@ public class MessagesAndMediaDownload {
             }
 
             // writes messages of the dialog to "messages + [dialog_id]" table/collection/etc.
-            dbStorage.setTarget(Constants.MSG_DIAL_PREF + dialog.getPeer().getId());
+            dbStorage.setTarget(MSG_DIAL_PREF + dialog.getPeer().getId());
             for (TLAbsMessage absMessage: absMessages){
                 String reference = MediaDownloadMethods.messageDownloadMediaToDB(api, dbStorage, absMessage, maxSize);
                 if (reference != null){

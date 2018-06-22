@@ -10,8 +10,6 @@
 
 package crawler;
 
-import storage.db.DBStorage;
-import storage.db.mongo.MongoDBStorage;
 import crawler.apicallback.ApiCallbackImplemented;
 import crawler.apimethods.AuthMethods;
 import crawler.apimethods.DialogsHistoryMethods;
@@ -28,6 +26,8 @@ import org.telegram.api.message.TLAbsMessage;
 import org.telegram.api.user.TLAbsUser;
 import org.telegram.bot.kernel.engine.MemoryApiState;
 import org.telegram.tl.TLVector;
+import storage.db.DBStorage;
+import storage.db.mongo.MongoDBStorage;
 
 import java.util.HashMap;
 import java.util.Optional;
