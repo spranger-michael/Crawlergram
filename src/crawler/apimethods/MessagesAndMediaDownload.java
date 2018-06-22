@@ -4,7 +4,7 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.implementation.apimethods;
+package crawler.apimethods;
 
 import storage.db.Constants;
 import storage.db.DBStorage;

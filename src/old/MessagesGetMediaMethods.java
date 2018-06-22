@@ -4,10 +4,12 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.implementation.apimethods;
+package old;
 
-import crawler.output.console.ConsoleOutputMethods;
-import crawler.output.files.FileMethods;
+import crawler.apimethods.DialogsHistoryMethods;
+import crawler.apimethods.SetTLObjectsMethods;
+import crawler.output.ConsoleOutputMethods;
+import crawler.output.FileMethods;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.dialog.TLDialog;
 import org.telegram.api.document.TLAbsDocument;

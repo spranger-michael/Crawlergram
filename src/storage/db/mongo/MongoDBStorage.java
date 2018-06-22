@@ -14,7 +14,6 @@ import com.mongodb.client.gridfs.model.GridFSUploadOptions;
 import static com.mongodb.client.model.Sorts.*;
 import static com.mongodb.client.model.Filters.*;
 import com.mongodb.client.model.UpdateOptions;
-import com.mongodb.client.result.UpdateResult;
 import static storage.db.Constants.*;
 import storage.db.DBStorage;
 import org.bson.Document;
@@ -24,7 +23,6 @@ import java.io.InputStream;
 import java.util.*;
 
 import com.mongodb.client.model.Filters;
-import org.bson.types.ObjectId;
 import org.telegram.api.channel.TLChannelParticipants;
 import org.telegram.api.channel.participants.*;
 import org.telegram.api.chat.*;
@@ -289,7 +287,7 @@ public class MongoDBStorage implements DBStorage {
             } else {
                 try {
                     Document doc = (Document) obj;
-                    UpdateResult uRes = collection.updateOne(Filters.eq("_id", doc.get("_id")), new Document("$set", doc), new UpdateOptions().upsert(true));
+                    collection.updateOne(Filters.eq("_id", doc.get("_id")), new Document("$set", doc), new UpdateOptions().upsert(true));
                 } catch (MongoException e) {
                     System.err.println(e.getCode() + " " + e.getMessage());
                 }
@@ -510,7 +508,7 @@ public class MongoDBStorage implements DBStorage {
         String type = split[split.length-1];
         // 100kb chunks
         GridFSUploadOptions options = new GridFSUploadOptions().chunkSizeBytes(100*1024).metadata(new Document("type", type));
-        ObjectId fileId = gridFSBucket.uploadFromStream(name, inputStream, options);
+        gridFSBucket.uploadFromStream(name, inputStream, options);
     }
 
     /**
@@ -538,7 +536,9 @@ public class MongoDBStorage implements DBStorage {
     public List<TopicExtractionMessage> readMessages(TopicExtractionDialog target, int dateFrom, int dateTo) {
         List<TopicExtractionMessage> msgs = new LinkedList<>();
         this.setTarget(MSG_DIAL_PREF + target.getId());
-        FindIterable<Document> docs = collection.find(and(gte("date", dateFrom), lte("date", dateTo))).sort(descending("_id"));
+        FindIterable<Document> docs = collection
+                .find(and(gte("date", dateFrom), lte("date", dateTo)))
+                .sort(descending("_id"));
         for (Document doc: docs){
             msgs.add(TopicExtractionMessage.topicExtractionMessageFromMongoDocument(doc));
         }
@@ -562,7 +562,7 @@ public class MongoDBStorage implements DBStorage {
 
     /**
      * gets peer info from database
-     * @param id
+     * @param id id
      */
     public Document getPeerInfo(Integer id){
         this.setTarget("CHATS");

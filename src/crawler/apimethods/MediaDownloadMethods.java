@@ -4,10 +4,10 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.implementation.apimethods;
+package crawler.apimethods;
 
 import storage.db.DBStorage;
-import crawler.output.files.FileMethods;
+import crawler.output.FileMethods;
 import org.telegram.api.document.TLAbsDocument;
 import org.telegram.api.document.TLDocument;
 import org.telegram.api.document.attribute.*;

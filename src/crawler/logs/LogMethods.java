@@ -4,9 +4,9 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.implementation.logs;
+package crawler.logs;
 
-import crawler.output.files.FileMethods;
+import crawler.output.FileMethods;
 
 import java.io.File;
 import java.text.DateFormat;

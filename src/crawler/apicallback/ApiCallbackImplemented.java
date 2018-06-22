@@ -4,7 +4,7 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.implementation.apicallback;
+package crawler.apicallback;
 
 import org.telegram.api.engine.ApiCallback;
 import org.telegram.api.engine.Logger;

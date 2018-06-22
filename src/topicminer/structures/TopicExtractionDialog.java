@@ -72,6 +72,10 @@ public class TopicExtractionDialog {
         this.flags = flags;
     }
 
+    /**
+     * converts data from DB to topic extraction dialog
+     * @param info info from CHATS or USERS collections
+     */
     public static TopicExtractionDialog topicExtractionDialogFromMongoDocument(Document info){
         Integer id = (Integer) info.get("_id");
         String type = (String) info.get("class");

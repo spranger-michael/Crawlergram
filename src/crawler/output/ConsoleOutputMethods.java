@@ -4,9 +4,9 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.output.console;
+package crawler.output;
 
-import crawler.implementation.structures.MessageDoc;
+import crawler.structures.MessageDoc;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.chat.TLChat;
 import org.telegram.api.chat.TLChatEmpty;

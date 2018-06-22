@@ -4,10 +4,10 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.implementation.apimethods;
+package crawler.apimethods;
 
 import storage.db.MessageHistoryExclusions;
-import crawler.implementation.structures.DataStructuresMethods;
+import crawler.structures.DataStructuresMethods;
 import org.telegram.api.channel.TLChannelParticipants;
 import org.telegram.api.channel.participants.*;
 import org.telegram.api.chat.TLAbsChat;

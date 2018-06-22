@@ -27,16 +27,16 @@ public interface DBStorage {
     void setTarget(String target);
 
     /**
-     * Sets target database
-     * @param database
-     */
-    void setDatabase(String database);
-
-    /**
      * Drops target table, collection, etc. in db
      * @param target
      */
     void dropTarget(String target);
+
+    /**
+     * Sets current db
+     * @param database
+     */
+    void setDatabase(String database);
 
     /**
      * Drops current db

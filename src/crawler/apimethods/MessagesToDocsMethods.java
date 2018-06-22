@@ -4,15 +4,15 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.implementation.apimethods;
+package crawler.apimethods;
 
-import crawler.implementation.structures.DataStructuresMethods;
+import crawler.structures.DataStructuresMethods;
 import topicminer.maths.gaussnewton.ExpRegMaths;
 import topicminer.maths.gaussnewton.GaussNewton;
-import crawler.implementation.structures.MessageDoc;
-import crawler.output.console.ConsoleOutputMethods;
+import crawler.structures.MessageDoc;
+import crawler.output.ConsoleOutputMethods;
 import topicminer.maths.gaussnewton.NoSquareException;
-import crawler.implementation.structures.MessageDocByDateComparator;
+import crawler.structures.MessageDocByDateComparator;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.chat.channel.TLChannel;
 import org.telegram.api.chat.channel.TLChannelForbidden;

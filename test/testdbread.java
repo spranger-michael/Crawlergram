@@ -29,7 +29,8 @@ public class testdbread {
             System.out.println(msgs.size());
         }
 
-        List<String> collections = mongo.getMessagesCollections();
+        List<String> allCollections = mongo.getAllCollections();
+        List<String> msgCollections = mongo.getMessagesCollections();
         Document peerInfo = mongo.getPeerInfo(777000);
 
 

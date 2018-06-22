@@ -4,7 +4,7 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.implementation.logs;
+package crawler.logs;
 
 import org.telegram.api.engine.LoggerInterface;
 

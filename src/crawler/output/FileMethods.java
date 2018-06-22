@@ -4,7 +4,7 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.output.files;
+package crawler.output;
 
 import org.telegram.api.file.location.TLFileLocation;
 import org.telegram.api.photo.size.TLAbsPhotoSize;

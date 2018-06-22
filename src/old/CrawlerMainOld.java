@@ -4,7 +4,7 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler;
+package old;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -12,14 +12,14 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import storage.db.mongo.MongoDBStorage;
-import crawler.implementation.apicallback.ApiCallbackImplemented;
-import crawler.implementation.apimethods.*;
-import crawler.implementation.structures.DataStructuresMethods;
-import crawler.output.console.ConsoleOutputMethods;
-import crawler.implementation.structures.MessageDoc;
-import crawler.output.files.FileMethods;
-import crawler.implementation.logs.MTProtoLoggerInterfaceImplemented;
-import crawler.implementation.logs.ApiLoggerInterfaceImplemented;
+import crawler.apicallback.ApiCallbackImplemented;
+import crawler.apimethods.*;
+import crawler.structures.DataStructuresMethods;
+import crawler.output.ConsoleOutputMethods;
+import crawler.structures.MessageDoc;
+import crawler.output.FileMethods;
+import crawler.logs.MTProtoLoggerInterfaceImplemented;
+import crawler.logs.ApiLoggerInterfaceImplemented;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.dialog.TLDialog;
 import org.telegram.api.engine.*;

@@ -4,7 +4,7 @@
  * Creator: Georgii Mikriukov
  */
 
-package crawler.implementation.apimethods;
+package crawler.apimethods;
 
 import org.telegram.api.TLConfig;
 import org.telegram.api.TLNearestDc;

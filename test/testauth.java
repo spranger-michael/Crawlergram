@@ -6,11 +6,11 @@
 
 import storage.db.DBStorage;
 import storage.db.mongo.MongoDBStorage;
-import crawler.implementation.apicallback.ApiCallbackImplemented;
-import crawler.implementation.apimethods.AuthMethods;
-import crawler.implementation.apimethods.DialogsHistoryMethods;
-import crawler.implementation.logs.LogMethods;
-import crawler.output.console.ConsoleOutputMethods;
+import crawler.apicallback.ApiCallbackImplemented;
+import crawler.apimethods.AuthMethods;
+import crawler.apimethods.DialogsHistoryMethods;
+import crawler.logs.LogMethods;
+import crawler.output.ConsoleOutputMethods;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.dialog.TLDialog;
 import org.telegram.api.engine.ApiCallback;
