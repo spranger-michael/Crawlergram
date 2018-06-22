@@ -12,8 +12,8 @@ import org.telegram.api.message.TLAbsMessage;
 import org.telegram.api.user.TLAbsUser;
 import org.telegram.tl.TLObject;
 import org.telegram.tl.TLVector;
-import topicminer.structures.TopicExtractionDialog;
-import topicminer.structures.TopicExtractionMessage;
+import topicextractor.structures.TopicExtractionDialog;
+import topicextractor.structures.TopicExtractionMessage;
 
 import java.util.HashMap;
 import java.util.List;

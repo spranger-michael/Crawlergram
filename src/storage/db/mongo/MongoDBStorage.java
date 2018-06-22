@@ -75,8 +75,8 @@ import org.telegram.tl.TLIntVector;
 import org.telegram.tl.TLObject;
 import org.telegram.tl.TLVector;
 import storage.db.DBStorage;
-import topicminer.structures.TopicExtractionDialog;
-import topicminer.structures.TopicExtractionMessage;
+import topicextractor.structures.TopicExtractionDialog;
+import topicextractor.structures.TopicExtractionMessage;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;

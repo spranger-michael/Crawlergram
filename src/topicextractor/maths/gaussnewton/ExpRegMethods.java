@@ -4,9 +4,12 @@
  * Creator: Georgii Mikriukov
  */
 
-package topicminer.maths.gaussnewton;
+package topicextractor.maths.gaussnewton;
 
-public class ExpRegMaths {
+import java.util.List;
+import java.util.Set;
+
+public class ExpRegMethods {
 
     /**
      * Counts initial values for optimization. Fits values to exponential function. returns [B, r] parameters of exponential function y(x) = B*exp(-r*x)
@@ -43,8 +46,61 @@ public class ExpRegMaths {
 
     }
 
+    /**
+     * calculates time for topic threshold
+     * @param r r parameter of exponential function y(x) = B*exp(-r*x)
+     * @param p probability (0.01 or 0.05)
+     */
     public static double mathTimeThresholdCount(double r, double p){
         return -Math.log(1-(1-p))/r;
+    }
+
+    /**
+     * Converts Set to double array
+     * @param   set   input set (with doubles or integers)
+     */
+    public static double[] setToDoubles(Set<Integer> set){
+        double[] res = new double[set.size()];
+
+        int i = 0;
+        for (Integer elem: set){
+            res[i] = elem;
+            i++;
+        }
+
+        return res;
+    }
+
+    /**
+     * Converts Set to double array
+     * @param   set   input set (with doubles or integers)
+     */
+    public static double[][] setToDoubles2D(Set<Integer> set){
+        double[][] res = new double[set.size()][1];
+
+        int i = 0;
+        for (Integer elem: set){
+            res[i][0] = elem;
+            i++;
+        }
+
+        return res;
+    }
+
+    /**
+     * Converts List to double array
+     * @param   list   input list (with doubles or integers)
+     */
+    public static double[] listToDoubles(List<Integer> list){
+        double[] res = new double[list.size()];
+
+        int i = 0;
+        for (Integer elem: list){
+            res[i] = elem;
+            i++;
+        }
+
+        return res;
     }
 
 }

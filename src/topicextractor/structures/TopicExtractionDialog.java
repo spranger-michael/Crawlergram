@@ -4,7 +4,7 @@
  * Creator: Georgii Mikriukov
  */
 
-package topicminer.structures;
+package topicextractor.structures;
 
 import org.bson.Document;
 

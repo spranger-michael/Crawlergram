@@ -54,7 +54,7 @@ public class testmsg {
 
 
 
-        //MessagesAndMediaDownload.saveOnlyMessages(api, dialogs, chatsHashMap, usersHashMap, messagesHashMap, 1000);
+        //CrawlingMethods.saveOnlyMessages(api, dialogs, chatsHashMap, usersHashMap, messagesHashMap, 1000);
 
 
 

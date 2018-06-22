@@ -5,11 +5,10 @@
  */
 
 import storage.db.mongo.MongoDBStorage;
-import topicminer.structures.TopicExtractionDialog;
-import topicminer.structures.TopicExtractionMessage;
+import topicextractor.structures.TopicExtractionDialog;
+import topicextractor.structures.TopicExtractionMessage;
 import org.bson.Document;
 
-import java.util.LinkedList;
 import java.util.List;
 
 public class testdbread {

@@ -20,7 +20,7 @@ import java.util.HashMap;
 
 import static storage.db.Constants.MSG_DIAL_PREF;
 
-public class MessagesAndMediaDownload {
+public class CrawlingMethods {
 
     /**
      * Writes only messages to DB

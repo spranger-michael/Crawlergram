@@ -12,8 +12,8 @@ package crawler;
 
 import crawler.apicallback.ApiCallbackImplemented;
 import crawler.apimethods.AuthMethods;
+import crawler.apimethods.CrawlingMethods;
 import crawler.apimethods.DialogsHistoryMethods;
-import crawler.apimethods.MessagesAndMediaDownload;
 import crawler.logs.LogMethods;
 import crawler.output.ConsoleOutputMethods;
 import org.telegram.api.chat.TLAbsChat;
@@ -90,10 +90,10 @@ public class CrawlerMain {
         String filesPath = "files";
 
         //Saves messages to DB:
-        MessagesAndMediaDownload.saveOnlyMessages(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter, maxDate, minDate);
+        CrawlingMethods.saveOnlyMessages(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter, maxDate, minDate);
 
         //Saves messages to DB and media to HDD
-        //MessagesAndMediaDownload.saveMessagesToDBFilesToHDD(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter, maxDate, minDate, maxFileSize, filesPath);
+        //CrawlingMethods.saveMessagesToDBFilesToHDD(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter, maxDate, minDate, maxFileSize, filesPath);
 
         // stops the execution
         System.exit(0);

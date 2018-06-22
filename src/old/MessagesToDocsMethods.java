@@ -7,10 +7,10 @@
 package old;
 
 import crawler.apimethods.DialogsHistoryMethods;
-import topicminer.maths.gaussnewton.ExpRegMaths;
-import topicminer.maths.gaussnewton.GaussNewton;
+import topicextractor.maths.gaussnewton.ExpRegMethods;
+import topicextractor.maths.gaussnewton.GaussNewton;
 import crawler.output.ConsoleOutputMethods;
-import topicminer.maths.gaussnewton.NoSquareException;
+import topicextractor.maths.gaussnewton.NoSquareException;
 import org.telegram.api.chat.TLAbsChat;
 import org.telegram.api.chat.channel.TLChannel;
 import org.telegram.api.chat.channel.TLChannelForbidden;
@@ -179,14 +179,14 @@ public class MessagesToDocsMethods {
             }
         };
         // values initialization and optimisation
-        double[] expModelInit = ExpRegMaths.expRegInitVals(DataStructuresMethods.setToDoubles(deltasUnique), DataStructuresMethods.listToDoubles(deltasUniqueCounts));
+        double[] expModelInit = ExpRegMethods.expRegInitVals(DataStructuresMethods.setToDoubles(deltasUnique), DataStructuresMethods.listToDoubles(deltasUniqueCounts));
         double[] expModel = new double[2];
         try {
             expModel = gn.optimise(DataStructuresMethods.setToDoubles2D(deltasUnique), DataStructuresMethods.listToDoubles(deltasUniqueCounts), expModelInit);
         } catch (NoSquareException e) {
             System.out.println(e.getMessage());
         }
-        int timeThreshold = (int) Math.ceil(ExpRegMaths.mathTimeThresholdCount(expModel[1], 0.01));
+        int timeThreshold = (int) Math.ceil(ExpRegMethods.mathTimeThresholdCount(expModel[1], 0.01));
         // returns the list of merged documents
         return apiMessageMergeDocsByTime(docs, timeThreshold);
     }

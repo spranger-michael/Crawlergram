@@ -4,15 +4,15 @@
  * https://www.codeproject.com/Articles/1175992/Implementation-of-Gauss-Newton-Algorithm-in-Java
  */
 
-package topicminer.maths.gaussnewton;
+package topicextractor.maths.gaussnewton;
 
-public class IllegalDimensionException extends Exception {
+public class NoSquareException extends Exception {
 
-    public IllegalDimensionException() {
+    public NoSquareException() {
         super();
     }
 
-    public IllegalDimensionException(String message) {
+    public NoSquareException(String message) {
         super(message);
     }
 
