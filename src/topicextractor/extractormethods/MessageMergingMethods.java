@@ -30,15 +30,14 @@ public class MessageMergingMethods {
     public static List<TopicExtractionMessage> mergeMessages(TopicExtractionDialog dialog,
                                                              List<TopicExtractionMessage> msgs,
                                                              int docThreshold){
-        List<TopicExtractionMessage> merged = new LinkedList<>();
-        //if chat, supergroup or user (not regular channel)
+        // merging if chat, supergroup or user (placer, where subscribers write something)
+        // channels (not supergroups) usually are blogs, subscribers can't post there
         // if flags' 9th bit is "1" - channel is supergroup (0001 0000 0000 = 256d)
-        if (!(dialog.getType().equals("Channel") && ((dialog.getFlags() & 256) == 0))) {
-                merged = mergeChat(msgs, docThreshold);
+        if (!(dialog.getType().equals("Channel") && ((dialog.getFlags() & 256) == 0) && (msgs.size() > 0))) {
+                return mergeChat(msgs, docThreshold);
         } else {
-            merged = msgs;
+            return msgs;
         }
-        return merged;
     }
 
     /**
@@ -48,7 +47,7 @@ public class MessageMergingMethods {
      */
     private static List<TopicExtractionMessage> mergeChat(List<TopicExtractionMessage> messages, int docThreshold){
         // if number of messages < docThreshold - short chat, else - long chat
-        return ((messages.size() < docThreshold) && (messages.size() > 0)) ? mergeShortChat(messages) : apiLongChatsToDocs(messages);
+        return (messages.size() < docThreshold) ?  mergeShortChat(messages) : mergeLongChat(messages);
     }
 
     /**
@@ -66,7 +65,7 @@ public class MessageMergingMethods {
         if (!text.isEmpty()){
             // id and date of last message are taken
             TopicExtractionMessage first = messages.get(0);
-            merged.add(new TopicExtractionMessage(first.getId(), text, first.getDate(), first.getReplyTo()));
+            merged.add(new TopicExtractionMessage(first.getId(), text, first.getDate()));
         }
         return merged;
     }
@@ -75,7 +74,7 @@ public class MessageMergingMethods {
      * merges long chat messages (number of messages > threshold) if they fit time interval
      * @param   messages  "clean" messages (without empty and service messages)
      */
-    private static List<TopicExtractionMessage> apiLongChatsToDocs(List<TopicExtractionMessage> messages) {
+    private static List<TopicExtractionMessage> mergeLongChat(List<TopicExtractionMessage> messages) {
         Collections.sort(messages, new TopicExtractionMessageComparator());
         // get intervals between messages to array
         List<Integer> dates = new ArrayList<>();
@@ -83,23 +82,12 @@ public class MessageMergingMethods {
             dates.add(message.getDate());
         }
         // deltas between intervals
-        List<Integer> deltas = new ArrayList<>();
-        for (int i = 0; i < dates.size()-1; i++){
-            deltas.add(dates.get(i) - dates.get(i+1));
-        }
-        // unique deltas
-        Set<Integer> deltasUnique = new HashSet<>(deltas);
+        List<Integer> deltas = ExpRegMethods.countDeltas(dates);
+        // unique deltas (sorted tree set)
+        Set<Integer> deltasUnique = new TreeSet<>(deltas);
         // unique deltas counts
-        List<Integer> deltasUniqueCounts = new ArrayList<>();
-        for (Integer deltaUnique: deltasUnique){
-            Integer count = 0;
-            for (Integer delta: deltas){
-                if (deltaUnique.equals(delta)){
-                    count++;
-                }
-            }
-            deltasUniqueCounts.add(count);
-        }
+        List<Integer> deltasUniqueCounts = ExpRegMethods.countUniqueDeltas(deltasUnique, deltas);
+
         // Gauss-Newton implementation for fitting
         GaussNewton gn = new GaussNewton() {
             @Override
@@ -107,6 +95,7 @@ public class MessageMergingMethods {
                 return b[0] * Math.exp(-b[1] * x);
             }
         };
+
         // values initialization and optimisation
         double[] expModelInit = ExpRegMethods.expRegInitVals(ExpRegMethods.setToDoubles(deltasUnique), ExpRegMethods.listToDoubles(deltasUniqueCounts));
         double[] expModel = new double[2];
@@ -126,20 +115,24 @@ public class MessageMergingMethods {
      * @param timeThreshold maximum time between messages in one doc
      */
     private static List<TopicExtractionMessage> mergeByTime(List<TopicExtractionMessage> messages, int timeThreshold){
-        List<TopicExtractionMessage> mesCopy = new LinkedList<>(messages);
-        for (int i = 0; i < mesCopy.size() - 1; i++){
-            // date of the current and next documents
-            TopicExtractionMessage d0 = mesCopy.get(i);
-            TopicExtractionMessage d1 = mesCopy.get(i+1);
-            // threshold criterion
-            if (d0.getDate() - d1.getDate() <= timeThreshold){
-                mesCopy.set(i, new TopicExtractionMessage(d0.getId(), d0.getText() + "\n" + d1.getText(), d0.getDate(), d0.getReplyTo()));
-                mesCopy.remove(i+1);
-                // returns i back each time, when we have merge of the messages, to check for multiple merges in row
-                i--;
+        if (timeThreshold <= 0){
+            return mergeShortChat(messages);
+        } else {
+            List<TopicExtractionMessage> mesCopy = new LinkedList<>(messages);
+            for (int i = 0; i < mesCopy.size() - 1; i++) {
+                // date of the current and next documents
+                TopicExtractionMessage d0 = mesCopy.get(i);
+                TopicExtractionMessage d1 = mesCopy.get(i + 1);
+                // threshold criterion
+                if (d0.getDate() - d1.getDate() <= timeThreshold) {
+                    mesCopy.set(i, new TopicExtractionMessage(d0.getId(), d0.getText() + "\n" + d1.getText(), d0.getDate()));
+                    mesCopy.remove(i + 1);
+                    // returns i back each time, when we have merge of the messages, to check for multiple merges in row
+                    i--;
+                }
             }
+            return mesCopy;
         }
-        return mesCopy;
     }
 
 }

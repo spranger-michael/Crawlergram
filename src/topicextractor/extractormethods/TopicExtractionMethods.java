@@ -10,6 +10,7 @@ import storage.db.DBStorage;
 import topicextractor.structures.TopicExtractionDialog;
 import topicextractor.structures.TopicExtractionMessage;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -42,7 +43,7 @@ public class TopicExtractionMethods {
      */
     public static void getTopicsForOneDialog(DBStorage dbStorage, TopicExtractionDialog dialog,
                                              int dateFrom, int dateTo, int docThreshold){
-        List<TopicExtractionMessage> msgs = new LinkedList<>();
+        List<TopicExtractionMessage> msgs;
         // if dates valid - get only messages between these dates, otherwise - get all messages
         if (datesCheck(dateFrom, dateTo)){
             msgs = dbStorage.readMessages(dialog, dateFrom, dateTo);

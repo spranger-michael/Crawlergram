@@ -6,6 +6,7 @@
 
 package topicextractor.maths.gaussnewton;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -53,6 +54,39 @@ public class ExpRegMethods {
      */
     public static double mathTimeThresholdCount(double r, double p){
         return -Math.log(1-(1-p))/r;
+    }
+
+    /**
+     * counts differences between dates
+     * @param dates dates array
+     */
+    public static List<Integer> countDeltas(List<Integer> dates){
+        List<Integer> deltas = new ArrayList<>();
+        for (int i = 0; i < dates.size()-1; i++){
+            if (dates.get(i+1) != 0){
+                deltas.add(dates.get(i) - dates.get(i+1));
+            }
+        }
+        return deltas;
+    }
+
+    /**
+     * gets count of each unique delta
+     * @param deltasUnique unique deltas set
+     * @param deltas all deltas
+     */
+    public static List<Integer> countUniqueDeltas(Set<Integer> deltasUnique, List<Integer> deltas){
+        List<Integer> deltasUniqueCounts = new ArrayList<>();
+        for (Integer deltaUnique: deltasUnique){
+            Integer count = 0;
+            for (Integer delta: deltas){
+                if (deltaUnique.equals(delta)){
+                    count++;
+                }
+            }
+            deltasUniqueCounts.add(count);
+        }
+        return deltasUniqueCounts;
     }
 
     /**

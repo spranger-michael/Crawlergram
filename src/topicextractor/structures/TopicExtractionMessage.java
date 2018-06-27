@@ -13,20 +13,17 @@ public class TopicExtractionMessage {
     private Integer id;
     private String text;
     private Integer date;
-    private Integer replyTo;
 
     public TopicExtractionMessage(){
         this.id = 0;
         this.text = "";
         this.date = 0;
-        this.replyTo = 0;
     }
 
-    public TopicExtractionMessage(Integer id, String text, Integer date, Integer replyTo){
+    public TopicExtractionMessage(Integer id, String text, Integer date){
         this.id = id;
         this.text = text;
         this.date = date;
-        this.replyTo = replyTo;
     }
 
     public Integer getId() {
@@ -53,14 +50,6 @@ public class TopicExtractionMessage {
         this.date = date;
     }
 
-    public Integer getReplyTo() {
-        return replyTo;
-    }
-
-    public void setReplyTo(Integer replyTo) {
-        this.replyTo = replyTo;
-    }
-
     /**
      * Converts mongoDB's document to TEM (extracts text of message or media's caption)
      * @param doc document
@@ -69,12 +58,11 @@ public class TopicExtractionMessage {
         if (doc.get("class").equals("Message")){
             Integer id = (Integer) doc.get("_id");
             Integer date = (Integer) doc.get("date");
-            Integer replyTo = (Integer) doc.get("replyToMsgId");
             String text = (String) doc.get("message");
             if (text.isEmpty()){
                 text = getMediaCaption((Document) doc.get("media"));
             }
-            return new TopicExtractionMessage(id, text, date, replyTo);
+            return new TopicExtractionMessage(id, text, date);
         } else {
             return new TopicExtractionMessage();
         }

@@ -523,7 +523,7 @@ public class MongoDBStorage implements DBStorage {
     public List<TopicExtractionMessage> readMessages(TopicExtractionDialog target) {
         List<TopicExtractionMessage> msgs = new LinkedList<>();
         this.setTarget(MSG_DIAL_PREF + target.getId());
-        FindIterable<Document> docs = collection.find().sort(descending("_id"));
+        FindIterable<Document> docs = collection.find().sort(descending("date", "_id"));
         for (Document doc: docs){
             msgs.add(TopicExtractionMessage.topicExtractionMessageFromMongoDocument(doc));
         }
@@ -542,7 +542,7 @@ public class MongoDBStorage implements DBStorage {
         this.setTarget(MSG_DIAL_PREF + target.getId());
         FindIterable<Document> docs = collection
                 .find(and(gte("date", dateFrom), lte("date", dateTo)))
-                .sort(descending("_id"));
+                .sort(descending("date", "_id" ));
         for (Document doc: docs){
             msgs.add(TopicExtractionMessage.topicExtractionMessageFromMongoDocument(doc));
         }
