@@ -34,10 +34,10 @@ public class MessageMergingMethods {
         // channels (not supergroups) usually are blogs, subscribers can't post there
         // if flags' 9th bit is "1" - channel is supergroup (0001 0000 0000 = 256d)
         if (!(dialog.getType().equals("Channel") && ((dialog.getFlags() & 256) == 0) && (msgs.size() > 0))) {
-                return mergeChat(msgs, docThreshold);
-        } else {
-            return msgs;
+                msgs = mergeChat(msgs, docThreshold);
         }
+        removeEmptyMessages(msgs);
+        return msgs;
     }
 
     /**
@@ -132,6 +132,18 @@ public class MessageMergingMethods {
                 }
             }
             return mesCopy;
+        }
+    }
+
+    /**
+     * Removes empty messages from the list
+     * @param msgs messages list
+     */
+    private static void removeEmptyMessages(List<TopicExtractionMessage> msgs){
+        for (int i = 0; i < msgs.size(); i++) {
+            if (msgs.get(i).getText().isEmpty()){
+                msgs.remove(i);
+            }
         }
     }
 

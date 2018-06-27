@@ -52,9 +52,10 @@ public class TopicExtractionMethods {
         }
         // check if resulting list is not empty
         if (!msgs.isEmpty()){
-            MessageMergingMethods.mergeMessages(dialog, msgs, docThreshold);
+            msgs = MessageMergingMethods.mergeMessages(dialog, msgs, docThreshold);
         }
 
+        System.out.println();
         //TODO
 
     }
