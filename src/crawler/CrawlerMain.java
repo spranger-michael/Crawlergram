@@ -95,6 +95,9 @@ public class CrawlerMain {
         //Saves messages to DB and media to HDD
         //CrawlingMethods.saveMessagesToDBFilesToHDD(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter, maxDate, minDate, maxFileSize, filesPath);
 
+        //Saves messages to DB and media to DB
+        //CrawlingMethods.saveMessagesToDBFilesToDB(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter, maxDate, minDate, maxFileSize);
+
         // stops the execution
         System.exit(0);
     }
