@@ -10,8 +10,6 @@ import storage.db.DBStorage;
 import topicextractor.structures.TopicExtractionDialog;
 import topicextractor.structures.TopicExtractionMessage;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class TopicExtractionMethods {
@@ -65,12 +63,8 @@ public class TopicExtractionMethods {
      * @param dateFrom
      * @param dateTo
      */
-    private static boolean datesCheck(int dateFrom, int dateTo){
-        if ((dateFrom == 0) && (dateTo == 0)){
-            return false;
-        } else {
-            return dateFrom < dateTo;
-        }
+    private static boolean datesCheck(int dateFrom, int dateTo) {
+        return ((dateFrom != 0) || (dateTo != 0)) && dateFrom < dateTo;
     }
 
 }

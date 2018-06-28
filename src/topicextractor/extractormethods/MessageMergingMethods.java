@@ -97,7 +97,7 @@ public class MessageMergingMethods {
         };
 
         // values initialization and optimisation
-        double[] expModelInit = ExpRegMethods.expRegInitVals(ExpRegMethods.setToDoubles(deltasUnique), ExpRegMethods.listToDoubles(deltasUniqueCounts));
+        double[] expModelInit = ExpRegMethods.expRegInitValues(ExpRegMethods.setToDoubles(deltasUnique), ExpRegMethods.listToDoubles(deltasUniqueCounts));
         double[] expModel = new double[2];
         try {
             expModel = gn.optimise(ExpRegMethods.setToDoubles2D(deltasUnique), ExpRegMethods.listToDoubles(deltasUniqueCounts), expModelInit);

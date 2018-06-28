@@ -38,6 +38,17 @@ public class FileMethods {
     }
 
     /**
+     * Checks free space on HDD
+     * @param filePath path
+     * @param size size
+     */
+    public static boolean checkFreeSpace(String filePath, int size){
+        File file = new File(filePath);
+        long freeSpace = file.getFreeSpace();
+        return freeSpace > size;
+    }
+
+    /**
      * Creates file and directory (if not exist). Appends bytes to the file.
      * @param	filename	path to the file
      * @param	bytes	bytes for writing
@@ -45,14 +56,16 @@ public class FileMethods {
      * @see File
      */
     public static void appendBytesToFile(String filename, byte[] bytes){
+        FileOutputStream output = null;
         try {
             checkFilePath(filename);
             // append bytes to file
-            FileOutputStream output = new FileOutputStream(filename, true);
+            output = new FileOutputStream(filename, true);
             output.write(bytes);
-            output.close();
         } catch (IOException e) {
             System.err.println(e.getMessage());
+        } finally {
+            try {output.close();} catch (IOException e) {}
         }
     }
 
@@ -64,14 +77,16 @@ public class FileMethods {
      * @see File
      */
     public static void writeBytesToFile(String filename, byte[] bytes){
+        FileOutputStream output = null;
         try {
             checkFilePath(filename);
             // write bytes to file
-            FileOutputStream output = new FileOutputStream(filename);
+            output = new FileOutputStream(filename);
             output.write(bytes);
-            output.close();
         } catch (IOException e) {
             System.err.println(e.getMessage());
+        } finally {
+            try {output.close();} catch (IOException e) {}
         }
     }
 

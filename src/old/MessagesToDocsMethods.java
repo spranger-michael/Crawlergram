@@ -179,7 +179,7 @@ public class MessagesToDocsMethods {
             }
         };
         // values initialization and optimisation
-        double[] expModelInit = ExpRegMethods.expRegInitVals(DataStructuresMethods.setToDoubles(deltasUnique), DataStructuresMethods.listToDoubles(deltasUniqueCounts));
+        double[] expModelInit = ExpRegMethods.expRegInitValues(DataStructuresMethods.setToDoubles(deltasUnique), DataStructuresMethods.listToDoubles(deltasUniqueCounts));
         double[] expModel = new double[2];
         try {
             expModel = gn.optimise(DataStructuresMethods.setToDoubles2D(deltasUnique), DataStructuresMethods.listToDoubles(deltasUniqueCounts), expModelInit);

@@ -320,7 +320,7 @@ public class DialogsHistoryMethods {
         int iter = 0;
         while (receivedMessagesCheck(receivedMsgs, limit)) {
             TLRequestMessagesGetHistory getHistory = SetTLObjectsMethods.getHistoryRequestSet(dialog, chatsHashMap, usersHashMap, 100, offDate, offId);
-            // try to get messages (in recusrsion), use 0 as initial depth
+            // try to get messages (in recursion), use 0 as initial depth
             TLAbsMessages absMessages = (TLAbsMessages) sleepAndRequest(api, getHistory, 100, 0);
             // if returns no messages -> break the loop
             if (absMessages.getMessages().isEmpty() || absMessages == null || absMessages.getMessages() == null) { break; }
@@ -363,7 +363,7 @@ public class DialogsHistoryMethods {
         if ((depth != 0) && (sleepTime < 1000)){
             time = 1000;
         } else {
-            time = Integer.valueOf(sleepTime);
+            time = sleepTime;
         }
         TLObject tlObject = null;
         // sleep
@@ -380,8 +380,7 @@ public class DialogsHistoryMethods {
                         try {
                             String timeSleepString = e.getErrorTag().replaceAll("FLOOD_WAIT_", "");
                             timeSleep = Integer.valueOf(timeSleepString) * 1000;
-                        } catch (Error er) {
-                        }
+                        } catch (Error ignored) {}
                     }
                     System.err.println("Depth: " + depth + ", Sleep time: " + timeSleep + " " + e.getErrorTag() + " " + e.getErrorCode());
                     tlObject = sleepAndRequest(api, getHistory, timeSleep, ++depth);
@@ -459,14 +458,10 @@ public class DialogsHistoryMethods {
     private static boolean isOutOfBounds(TLAbsMessage message, int minDate){
         if (message instanceof TLMessage){
             int date = ((TLMessage) message).getDate();
-            if (date < minDate){
-                return true;
-            }
+            return date < minDate;
         } else if (message instanceof TLMessageService){
             int date = ((TLMessageService) message).getDate();
-            if (date < minDate){
-                return true;
-            }
+            return date < minDate;
         }
         return false;
     }
@@ -502,7 +497,6 @@ public class DialogsHistoryMethods {
      * @param messagesHashMap top messages
      */
     public static TLAbsMessage getTopMessage(TLDialog dialog, HashMap<Integer, TLAbsMessage> messagesHashMap){
-        TLVector<TLAbsMessage> messages = new TLVector<>();
         TLAbsMessage msg = messagesHashMap.get(dialog.getPeer().getId());
         if (msg instanceof TLMessage){
             return msg;
@@ -585,7 +579,6 @@ public class DialogsHistoryMethods {
      * @param dialog dialog
      * @param chatsHashMap chats
      * @param usersHashMap users
-     * @return
      */
     public static TLObject getFullDialog(TelegramApi api,
                                          TLDialog dialog,
@@ -669,7 +662,7 @@ public class DialogsHistoryMethods {
             }
         } else if (full instanceof TLUserFull) {
             participants = full;
-        } else {}
+        }
         return participants;
     }
 
@@ -735,23 +728,22 @@ public class DialogsHistoryMethods {
      */
     private static void checkAndUpdateParticipants(TLChannelParticipants temp, Set<Integer> participantsIdSet,
                                                    TLVector<TLAbsUser> users, TLVector<TLAbsChannelParticipant> participants){
-            TLVector<TLAbsUser> tempUsers = temp.getUsers();
-            TLVector<TLAbsChannelParticipant> tempParticipants = temp.getParticipants();
-            for (int i = 0; i < tempUsers.size(); i++){
-                int curId = tempUsers.get(i).getId();
-                if (!participantsIdSet.contains(curId)){
-                    participantsIdSet.add(curId);
-                    users.add(tempUsers.get(i));
-                    participants.add(getParticipantFromListById(tempParticipants, curId));
-                }
+        TLVector<TLAbsUser> tempUsers = temp.getUsers();
+        TLVector<TLAbsChannelParticipant> tempParticipants = temp.getParticipants();
+        for (TLAbsUser tempUser : tempUsers) {
+            int curId = tempUser.getId();
+            if (!participantsIdSet.contains(curId)) {
+                participantsIdSet.add(curId);
+                users.add(tempUser);
+                participants.add(getParticipantFromListById(tempParticipants, curId));
             }
+        }
     }
 
     /**
      * gets participant by id (while original users and participants lists are not ordered)
      * @param participants list
      * @param id required id
-     * @return
      */
     private static TLAbsChannelParticipant getParticipantFromListById(TLVector<TLAbsChannelParticipant> participants, int id){
         TLAbsChannelParticipant par = null;

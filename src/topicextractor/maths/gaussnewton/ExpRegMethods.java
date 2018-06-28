@@ -13,11 +13,12 @@ import java.util.Set;
 public class ExpRegMethods {
 
     /**
-     * Counts initial values for optimization. Fits values to exponential function. returns [B, r] parameters of exponential function y(x) = B*exp(-r*x)
+     * Counts initial values for optimization. Fits values to exponential function.
+     * Returns [B, r] parameters of exponential function y(x) = B*exp(-r*x)
      * @param x x-axis values
      * @param y y-axis values
      */
-    public static double[] expRegInitVals(double[] x, double[] y) {
+    public static double[] expRegInitValues(double[] x, double[] y) {
         double[] result = new double[2];
         //variables for sums
         double sx2y = 0;
@@ -27,10 +28,7 @@ public class ExpRegMethods {
         double sy = 0;
         double sxy_2 = 0;
         int n = x.length;
-        double lny[] = new double[n]; //create an array where we will store ln(yi)
-        for (int i = 0; i < n; i++) {
-            //Calculate the values of ln(yi)
-        }
+        double lny[] = new double[n];
         for (int i = 0; i < n; i++) {
             lny[i] = Math.log(y[i]);
             sx2y += x[i]*x[i]*y[i];
@@ -39,18 +37,17 @@ public class ExpRegMethods {
             sxylny += x[i]*y[i]*lny[i];
             sy += y[i];
         }
+
         sxy_2 += Math.pow(sxy, 2);
         result[1] = -(sy*sxylny-sxy*sylny)/(sy*sx2y-sxy_2); // r
         result[0] = Math.exp((sx2y*sylny-sxy*sxylny)/(sy*sx2y-sxy_2)); // B
-
         return result;
-
     }
 
     /**
      * calculates time for topic threshold
      * @param r r parameter of exponential function y(x) = B*exp(-r*x)
-     * @param p probability (0.01 or 0.05)
+     * @param p probability (0.01 or 0.05 are recommended)
      */
     public static double mathTimeThresholdCount(double r, double p){
         return -Math.log(1-(1-p))/r;
