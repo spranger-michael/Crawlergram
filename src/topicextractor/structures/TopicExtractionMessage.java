@@ -52,13 +52,14 @@ public class TopicExtractionMessage {
 
     /**
      * Converts mongoDB's document to TEM (extracts text of message or media's caption)
+     * Strings are set converted to lowercase
      * @param doc document
      */
     public static TopicExtractionMessage topicExtractionMessageFromMongoDocument(Document doc){
         if (doc.get("class").equals("Message")){
             Integer id = (Integer) doc.get("_id");
             Integer date = (Integer) doc.get("date");
-            String text = (String) doc.get("message");
+            String text = ((String) doc.get("message")).toLowerCase();
             if (text.isEmpty()){
                 text = getMediaCaption((Document) doc.get("media"));
             }
