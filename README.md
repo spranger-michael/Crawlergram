@@ -1,6 +1,6 @@
-# telegramJ
+## Crawlergram
 
-Java client for Telegram based on [TelegramApi](https://github.com/rubenlagus/TelegramApi) by rubenlagus.
+Java crawler for Telegram based on [TelegramApi](https://github.com/rubenlagus/TelegramApi) by rubenlagus.
 
 ## Dependencies
 

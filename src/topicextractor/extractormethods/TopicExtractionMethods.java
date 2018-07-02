@@ -24,10 +24,13 @@ public class TopicExtractionMethods {
     public static void getTopicsForAllDialogs(DBStorage dbStorage, int dateFrom, int dateTo, int docThreshold){
         // get all dialogs
         List<TopicExtractionDialog> dialogs = dbStorage.getDialogs();
-        // iteratively for each do:
-        for (TopicExtractionDialog dialog: dialogs){
-            // do for one
-            getTopicsForOneDialog(dbStorage, dialog, dateFrom, dateTo, docThreshold);
+        if ((dialogs != null) && (!dialogs.isEmpty())){
+            for (TopicExtractionDialog dialog: dialogs){
+                // do for one
+                getTopicsForOneDialog(dbStorage, dialog, dateFrom, dateTo, docThreshold);
+            }
+        } else {
+            System.out.println("NO DIALOGS FOUND");
         }
     }
 
@@ -49,13 +52,13 @@ public class TopicExtractionMethods {
             msgs = dbStorage.readMessages(dialog);
         }
         // check if resulting list is not empty
-        if (!msgs.isEmpty()){
+        if ((msgs != null) && !msgs.isEmpty()){
             msgs = MessageMergingMethods.mergeMessages(dialog, msgs, docThreshold);
+            msgs = removePunctuation(msgs);
+            //TODO
+        } else {
+            System.out.println("EMPTY MESSAGES: " + dialog.getId() + " " + dialog.getUsername());
         }
-
-        System.out.println();
-        //TODO
-
     }
 
     /**
@@ -66,5 +69,19 @@ public class TopicExtractionMethods {
     private static boolean datesCheck(int dateFrom, int dateTo) {
         return ((dateFrom != 0) || (dateTo != 0)) && dateFrom < dateTo;
     }
+
+    private static List<String[]> tokenize(List<TopicExtractionMessage> msgs){
+        return null;
+        //TODO
+    }
+
+    private static List<TopicExtractionMessage> removePunctuation(List<TopicExtractionMessage> msgs){
+        for (int i = 0; i < msgs.size(); i++){
+            msgs.get(i).setText(msgs.get(i).getText().replaceAll("\\p{Punct}", ""));
+        }
+        return msgs;
+    }
+
+
 
 }

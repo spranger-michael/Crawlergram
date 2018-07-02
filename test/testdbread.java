@@ -4,6 +4,7 @@
  * Creator: Georgii Mikriukov
  */
 
+import com.mongodb.client.gridfs.model.GridFSFile;
 import storage.db.mongo.MongoDBStorage;
 import topicextractor.structures.TopicExtractionDialog;
 import topicextractor.structures.TopicExtractionMessage;
@@ -32,8 +33,8 @@ public class testdbread {
         List<String> msgCollections = mongo.getMessagesCollections();
         Document peerInfo = mongo.getPeerInfo(777000);
 
-
-
+        List<GridFSFile> files = mongo.getDBFilesInfo();
+        mongo.saveFilesToHDD("dbFiles");
 
         System.out.println("done");
     }

@@ -7,16 +7,18 @@
 package storage.db.mongo;
 
 import com.mongodb.*;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.MongoIterable;
+import com.mongodb.client.*;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
+import com.mongodb.client.gridfs.GridFSFindIterable;
+import com.mongodb.client.gridfs.model.GridFSFile;
 import com.mongodb.client.gridfs.model.GridFSUploadOptions;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.UpdateOptions;
+import crawler.output.FileMethods;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.telegram.api.channel.TLChannelParticipants;
 import org.telegram.api.channel.participants.*;
 import org.telegram.api.chat.*;
@@ -78,8 +80,7 @@ import storage.db.DBStorage;
 import topicextractor.structures.TopicExtractionDialog;
 import topicextractor.structures.TopicExtractionMessage;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 
 import static com.mongodb.client.model.Filters.*;
@@ -506,13 +507,85 @@ public class MongoDBStorage implements DBStorage {
      */
     @Override
     public void writeFile(String name, byte[] bytes) {
-        InputStream inputStream = new ByteArrayInputStream(bytes);
-        // file type (last split)
-        String[] split = name.split("\\.");
-        String type = split[split.length-1];
-        // 100kb chunks
-        GridFSUploadOptions options = new GridFSUploadOptions().chunkSizeBytes(100*1024).metadata(new Document("type", type));
-        gridFSBucket.uploadFromStream(name, inputStream, options);
+        try {
+            InputStream inputStream = new ByteArrayInputStream(bytes);
+            // file type (last split)
+            String[] split = name.split("\\.");
+            String type = split[split.length - 1];
+            // 100kb chunks
+            GridFSUploadOptions options = new GridFSUploadOptions().chunkSizeBytes(100 * 1024).metadata(new Document("type", type));
+            gridFSBucket.uploadFromStream(name, inputStream, options);
+        } catch (MongoException e) {
+            System.err.println(e.getCode() + " " + e.getMessage());
+        }
+    }
+
+    /**
+     * creates single field index
+     * @param field indexing field
+     * @param type switch: 1 - ascending, -1 - descending, default - ascending
+     */
+    @Override
+    public void createIndex(String field, int type) {
+        try {
+            switch (type) {
+                case 1:
+                    collection.createIndex(Indexes.ascending(field));
+                    break;
+                case -1:
+                    collection.createIndex(Indexes.descending(field));
+                    break;
+                default:
+                    collection.createIndex(Indexes.ascending(field));
+                    break;
+            }
+        } catch (MongoException e) {
+            System.err.println(e.getCode() + " " + e.getMessage());
+        }
+    }
+
+    /**
+     * creates composite index
+     * @param fields indexing fields
+     * @param types switch: 1 - ascending, -1 - descending, default - ascending
+     */
+    @Override
+    public void createIndex(List<String> fields, List<Integer> types) {
+        try {
+            // asc and desc indexes
+            List<String> asc = new ArrayList<>();
+            List<String> desc = new ArrayList<>();
+            //check sizes
+            if (fields.size() == types.size()){
+                // separate desc and asc
+                for (int i = 0; i < types.size(); i++){
+                    switch (types.get(i)) {
+                        case 1:
+                            asc.add(fields.get(i)); break;
+                        case -1:
+                            desc.add(fields.get(i)); break;
+                        default:
+                            asc.add(fields.get(i)); break;
+                    }
+                }
+                // if only desc is not empty
+                if (asc.isEmpty() && (!desc.isEmpty())){
+                    collection.createIndex(Indexes.descending(desc));
+                }
+                // if only asc is not empty
+                if (desc.isEmpty() && (!asc.isEmpty())){
+                    collection.createIndex(Indexes.ascending(asc));
+                }
+                // if asc & desc is not empty
+                if ((!asc.isEmpty()) && (!desc.isEmpty())) {
+                    collection.createIndex(Indexes.compoundIndex(Indexes.ascending(asc), Indexes.descending(desc)));
+                }
+            } else {
+                System.out.println("UNABLE TO CREATE INDEXES: fields and types have different lengths");
+            }
+        } catch (MongoException e) {
+            System.err.println(e.getCode() + " " + e.getMessage());
+        }
     }
 
     /**
@@ -521,13 +594,18 @@ public class MongoDBStorage implements DBStorage {
      */
     @Override
     public List<TopicExtractionMessage> readMessages(TopicExtractionDialog target) {
-        List<TopicExtractionMessage> msgs = new LinkedList<>();
-        this.setTarget(MSG_DIAL_PREF + target.getId());
-        FindIterable<Document> docs = collection.find().sort(descending("_id"));
-        for (Document doc: docs){
-            msgs.add(TopicExtractionMessage.topicExtractionMessageFromMongoDocument(doc));
+        try {
+            List<TopicExtractionMessage> msgs = new LinkedList<>();
+            this.setTarget(MSG_DIAL_PREF + target.getId());
+            FindIterable<Document> docs = collection.find().sort(descending("_id"));
+            for (Document doc : docs) {
+                msgs.add(TopicExtractionMessage.topicExtractionMessageFromMongoDocument(doc));
+            }
+            return msgs;
+        } catch (MongoException e) {
+            System.err.println(e.getCode() + " " + e.getMessage());
+            return null;
         }
-        return msgs;
     }
 
     /**
@@ -538,70 +616,169 @@ public class MongoDBStorage implements DBStorage {
      */
     @Override
     public List<TopicExtractionMessage> readMessages(TopicExtractionDialog target, int dateFrom, int dateTo) {
-        List<TopicExtractionMessage> msgs = new LinkedList<>();
-        this.setTarget(MSG_DIAL_PREF + target.getId());
-        FindIterable<Document> docs = collection
-                .find(and(gte("date", dateFrom), lte("date", dateTo)))
-                .sort(descending("_id" ));
-        for (Document doc: docs){
-            msgs.add(TopicExtractionMessage.topicExtractionMessageFromMongoDocument(doc));
+        try {
+            List<TopicExtractionMessage> msgs = new LinkedList<>();
+            this.setTarget(MSG_DIAL_PREF + target.getId());
+            FindIterable<Document> docs = collection
+                    .find(and(gte("date", dateFrom), lte("date", dateTo)))
+                    .sort(descending("_id"));
+            for (Document doc : docs) {
+                msgs.add(TopicExtractionMessage.topicExtractionMessageFromMongoDocument(doc));
+            }
+            return msgs;
+        } catch (MongoException e) {
+            System.err.println(e.getCode() + " " + e.getMessage());
+            return null;
         }
-        return msgs;
     }
 
     /**
      * returns dialogs list from respective collection
      */
     @Override
-    public List<TopicExtractionDialog> getDialogs(){
-        List<TopicExtractionDialog> dialogs = new ArrayList<>();
-        this.setTarget("DIALOGS");
-        FindIterable<Document> dials = collection.find();
-        for (Document dial: dials){
-            Document info = getPeerInfo((Integer) dial.get("_id"));
-            dialogs.add(TopicExtractionDialog.topicExtractionDialogFromMongoDocument(info));
+    public List<TopicExtractionDialog> getDialogs() {
+        try {
+            List<TopicExtractionDialog> dialogs = new ArrayList<>();
+            this.setTarget("DIALOGS");
+            FindIterable<Document> dials = collection.find();
+            for (Document dial : dials) {
+                Document info = getPeerInfo((Integer) dial.get("_id"));
+                if (info != null){
+                    dialogs.add(TopicExtractionDialog.topicExtractionDialogFromMongoDocument(info));
+                }
+            }
+            return dialogs;
+        } catch (MongoException e) {
+            System.err.println(e.getCode() + " " + e.getMessage());
+            return null;
         }
-        return dialogs;
+    }
+
+    /**
+     * saves files from DB to HDD
+     * @param path HDD path
+     */
+    @Override
+    public void saveFilesToHDD(String path) {
+        List<GridFSFile> files = getDBFilesInfo();
+        for (GridFSFile file : files) {
+            saveFileToHDD(path, file);
+        }
+    }
+
+    /**
+     * saves files from DB to HDD
+     * @param path path
+     * @param filePointer file id or another pointer
+     */
+    @Override
+    public void saveFileToHDD(String path, Object filePointer) {
+        try {
+            GridFSFile file = (GridFSFile) filePointer;
+            ObjectId oid = file.getObjectId();
+            path += File.separator + file.getFilename();
+            FileMethods.checkFilePath(path);
+            FileOutputStream fos = new FileOutputStream(path);
+            gridFSBucket.downloadToStream(oid, fos);
+            fos.close();
+        } catch (MongoException e) {
+            System.err.println(e.getCode() + " " + e.getMessage());
+            System.out.println("MONGODB ERROR " + ((GridFSFile) filePointer).getFilename());
+        } catch (IOException e){
+            System.err.println(e.getMessage());
+            System.out.println("OUTPUT STREAM ERROR " + ((GridFSFile) filePointer).getFilename());
+        }
     }
 
     /**
      * gets peer info from database
      * @param id id
      */
-    public Document getPeerInfo(Integer id){
-        this.setTarget("CHATS");
-        Document peerInfo = collection.find(eq("_id", id)).first();
-        if (peerInfo == null){
-            this.setTarget("USERS");
-            peerInfo = collection.find(eq("_id", id)).first();
+    public Document getPeerInfo(Integer id) {
+        try {
+            this.setTarget("CHATS");
+            Document peerInfo = collection.find(eq("_id", id)).first();
+            if (peerInfo == null) {
+                this.setTarget("USERS");
+                peerInfo = collection.find(eq("_id", id)).first();
+            }
+            return peerInfo;
+        } catch (MongoException e) {
+            System.err.println(e.getCode() + " " + e.getMessage());
+            return null;
         }
-        return peerInfo;
     }
 
     /**
      * returns list of existing collections names
      */
-    public List<String> getAllCollections(){
-        List<String> colNames = new ArrayList<>();
-        MongoIterable<String> collections = database.listCollectionNames();
-        for (String collection: collections){
-            colNames.add(collection);
-        }
-        return colNames;
-    }
-
-    /**
-     * returns list of existing collections names
-     */
-    public List<String> getMessagesCollections(){
-        List<String> colNames = new ArrayList<>();
-        MongoIterable<String> collections = database.listCollectionNames();
-        for (String collection: collections){
-            if (collection.startsWith("MESSAGES")){
+    public List<String> getAllCollections() {
+        try {
+            List<String> colNames = new ArrayList<>();
+            MongoIterable<String> collections = database.listCollectionNames();
+            for (String collection : collections) {
                 colNames.add(collection);
             }
+            return colNames;
+        } catch (MongoException e) {
+            System.err.println(e.getCode() + " " + e.getMessage());
+            return null;
         }
-        return colNames;
+    }
+
+    /**
+     * returns list of existing message collections names
+     */
+    public List<String> getMessagesCollections() {
+        try {
+            List<String> colNames = new ArrayList<>();
+            MongoIterable<String> collections = database.listCollectionNames();
+            for (String collection : collections) {
+                if (collection.startsWith("MESSAGES")) {
+                    colNames.add(collection);
+                }
+            }
+            return colNames;
+        } catch (MongoException e) {
+            System.err.println(e.getCode() + " " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * returns list of existing participant collections names
+     */
+    public List<String> getParticipantsCollections() {
+        try {
+            List<String> colNames = new ArrayList<>();
+            MongoIterable<String> collections = database.listCollectionNames();
+            for (String collection : collections) {
+                if (collection.startsWith("PARTICIPANTS")) {
+                    colNames.add(collection);
+                }
+            }
+            return colNames;
+        } catch (MongoException e) {
+            System.err.println(e.getCode() + " " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * returns names of stored files
+     */
+    public List<GridFSFile> getDBFilesInfo() {
+        try {
+            List<GridFSFile> files = new LinkedList<>();
+            GridFSFindIterable gfsi = gridFSBucket.find();
+            for (MongoCursor<GridFSFile> it = gfsi.iterator(); it.hasNext();) {
+                files.add(it.next());
+            }
+            return files;
+        } catch (MongoException e) {
+            System.err.println(e.getCode() + " " + e.getMessage());
+            return null;
+        }
     }
 
     /**

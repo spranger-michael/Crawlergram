@@ -65,7 +65,7 @@ public class FileMethods {
         } catch (IOException e) {
             System.err.println(e.getMessage());
         } finally {
-            try {output.close();} catch (IOException e) {}
+            try {output.close();} catch (IOException ignored) {}
         }
     }
 
@@ -86,7 +86,7 @@ public class FileMethods {
         } catch (IOException e) {
             System.err.println(e.getMessage());
         } finally {
-            try {output.close();} catch (IOException e) {}
+            try {output.close();} catch (IOException ignored) {}
         }
     }
 

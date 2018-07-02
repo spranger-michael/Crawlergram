@@ -128,6 +128,20 @@ public interface DBStorage {
     void writeFile(String name, byte[] bytes);
 
     /**
+     * creates single field index
+     * @param field
+     * @param type switch: 1 - ascending, -1 - descending, default - ascending
+     */
+    void createIndex(String field, int type);
+
+    /**
+     * creates composite index
+     * @param fields
+     * @param types switch: 1 - ascending, -1 - descending, default - ascending
+     */
+    void createIndex(List<String> fields, List<Integer> types);
+
+    /**
      * reads all messages from DB
      * @param target
      */
@@ -146,6 +160,17 @@ public interface DBStorage {
      */
     List<TopicExtractionDialog> getDialogs();
 
+    /**
+     * saves files from DB to HDD
+     * @param path
+     */
+    void saveFilesToHDD(String path);
 
-    
+    /**
+     * saves file from DB to HDD
+     * @param path path
+     * @param filePointer file id or another pointer
+     */
+    void saveFileToHDD(String path, Object filePointer);
+
 }
