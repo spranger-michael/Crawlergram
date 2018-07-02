@@ -10,7 +10,9 @@ import storage.db.DBStorage;
 import topicextractor.structures.TopicExtractionDialog;
 import topicextractor.structures.TopicExtractionMessage;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 public class TopicExtractionMethods {
 
@@ -54,7 +56,8 @@ public class TopicExtractionMethods {
         // check if resulting list is not empty
         if ((msgs != null) && !msgs.isEmpty()){
             msgs = MessageMergingMethods.mergeMessages(dialog, msgs, docThreshold);
-            msgs = removePunctuation(msgs);
+            List<List<String>> tokens = tokenize(msgs);
+            System.out.println();
             //TODO
         } else {
             System.out.println("EMPTY MESSAGES: " + dialog.getId() + " " + dialog.getUsername());
@@ -70,18 +73,89 @@ public class TopicExtractionMethods {
         return ((dateFrom != 0) || (dateTo != 0)) && dateFrom < dateTo;
     }
 
-    private static List<String[]> tokenize(List<TopicExtractionMessage> msgs){
-        return null;
-        //TODO
-    }
-
-    private static List<TopicExtractionMessage> removePunctuation(List<TopicExtractionMessage> msgs){
-        for (int i = 0; i < msgs.size(); i++){
-            msgs.get(i).setText(msgs.get(i).getText().replaceAll("\\p{Punct}", ""));
+    /**
+     * Tokenization method for strings
+     * @param msgs original messages
+     * @see StringTokenizer
+     */
+    private static List<List<String>> tokenize(List<TopicExtractionMessage> msgs){
+        List<List<String>> tokensList = new LinkedList<>();
+        for (TopicExtractionMessage msg: msgs){
+            String[] tokensA = msg.getText().split("\\s");
+            List<String> tokensL = new LinkedList<>();
+            for (String token: tokensA){
+                String t = tokenEdit(token);
+                if (!t.isEmpty()){
+                    tokensL.add(t);
+                }
+            }
+            if (!tokensL.isEmpty()){
+                tokensList.add(tokensL);
+            }
         }
-        return msgs;
+        return tokensList;
     }
 
+    /**
+     * various modifications: emptiness, number check, link check, etc.
+     * @param token original token
+     */
+    private static String tokenEdit(String token){
+        if (tokenCheck(token)){
+            return "";
+        } else {
+            token = removePunctuation(token);
+            if (tokenCheck(token)){
+                return "";
+            } else {
+                return token;
+            }
+        }
+    }
 
+    /**
+     * various checks: emptiness, number check, link check, etc.
+     * @param token original token
+     */
+    private static boolean tokenCheck(String token){
+        return token.isEmpty() || tokenIsLink(token) || tokenIsNumber(token) || tokenIsShort(token, 1);
+    }
+
+    /**
+     * checks if token is web link
+     * @param token
+     */
+    private static boolean tokenIsLink(String token){
+        return token.contains("https://") || token.contains("http://") || token.contains("www.");
+    }
+
+    /**
+     * removes punctuation from the token
+     * @param token original token
+     */
+    private static String removePunctuation(String token){
+        return token.replaceAll("\\p{Punct}", "");
+    }
+
+    /**
+     * checks if token can be casted into double
+     */
+    private static boolean tokenIsNumber(String token){
+        try {
+            Double d = Double.parseDouble(token);
+            return true;
+        } catch (NumberFormatException e){
+            return false;
+        }
+    }
+
+    /**
+     * checks if token is shorter (or equal) than x
+     * @param token original token
+     * @param x minimal length of token (inclusive)
+     */
+    private static boolean tokenIsShort(String token, int x){
+        return token.length() <= x;
+    }
 
 }

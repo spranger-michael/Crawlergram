@@ -84,13 +84,13 @@ public class CrawlerMain {
         int messagesLimit = 0; // maximum number of retrieved messages from each dialog (0 if all)
         int participantsLimit = 0; // maximum number of retrieved participants from each dialog (0 if all)
         int filter = 0; // participants filter: 0 - recent, 1 - admins, 2 - kicked, 3 - bots, default - recent
-        int maxDate = 1530524199; // min date of message (0 if no limit)
-        int minDate = 1530224199; // max date of message (0 if no limit)
+        int maxDate = 0; // min date of message (0 if no limit)
+        int minDate = 0; // max date of message (0 if no limit)
         int maxFileSize = 10485760; // 10 MB
         String filesPath = "files";
 
         //Saves messages to DB
-        //CrawlingMethods.saveOnlyMessages(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter, maxDate, minDate);
+        CrawlingMethods.saveOnlyMessages(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter, maxDate, minDate);
 
         //Saves messages to DB and media to HDD
         //CrawlingMethods.saveMessagesToDBFilesToHDD(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter, maxDate, minDate, maxFileSize, filesPath);
@@ -99,7 +99,7 @@ public class CrawlerMain {
         //CrawlingMethods.saveMessagesToDBFilesToDB(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, participantsLimit, filter, maxDate, minDate, maxFileSize);
 
         //Saves only media to DB
-        CrawlingMethods.saveOnlyMediaToDB(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, maxDate, minDate, maxFileSize);
+        //CrawlingMethods.saveOnlyMediaToDB(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, maxDate, minDate, maxFileSize);
 
         //Saves only media to HDD
         //CrawlingMethods.saveOnlyMediaToHDD(api, dbStorage, dialogs, chatsHashMap, usersHashMap, messagesHashMap, messagesLimit, maxDate, minDate, maxFileSize, filesPath);
