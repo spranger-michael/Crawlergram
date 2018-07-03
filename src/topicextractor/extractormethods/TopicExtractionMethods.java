@@ -13,6 +13,8 @@ import topicextractor.structures.TopicExtractionMessage;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TopicExtractionMethods {
 
@@ -123,10 +125,16 @@ public class TopicExtractionMethods {
 
     /**
      * checks if token is web link
-     * @param token
+     * @param token original token
      */
     private static boolean tokenIsLink(String token){
-        return token.contains("https://") || token.contains("http://") || token.contains("www.");
+        // http(s), www, ftp links
+        String p1 = "^(http://|https://|ftp://|file://|mailto:|nfs://|irc://|ssh://|telnet://|www\\.).+";
+        // short links of type: youtube.com & youtube.com/watch?v=oHg5SJYRHA0
+        String p2 = "^[A-Za-z0-9_.-~@]+\\.[A-Za-z0-9_.-~@]+(/.*)?";
+        Pattern pat = Pattern.compile("(" + p1 +")" + "|" + "(" + p2 +")");
+        Matcher mat = pat.matcher(token);
+        return mat.matches();
     }
 
     /**
